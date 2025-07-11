@@ -5,5 +5,7 @@ Andrew was here.
 ### Authors
 
 * Nasandratra Sartin Harivonjy Niaina
+ Favorite quote: “In difficult times carry something beautiful in your heart.”Blaise Pascal.
 * Fernando Arias
 * Andrew Parry
+ > Favorite quote: "Believe in yourself, and you're already halfway there." - Theodore Roosevelt
