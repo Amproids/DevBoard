@@ -1,0 +1,33 @@
+{
+    "name": "devboard",
+    "version": "1.0.0",
+    "description": "Kanban project management application",
+    "scripts": {
+        "dev": "concurrently \"npm run server\" \"npm run client\"",
+        "client": "npm start --prefix client",
+        "server": "npm run dev --prefix server",
+        "install-client": "npm install --prefix client",
+        "install-server": "npm install --prefix server",
+        "install-all": "npm-run-all install-server install-client",
+        "lint-client": "npm run lint --prefix client",
+        "lint-server": "npm run lint --prefix server",
+        "lint": "npm-run-all --continue-on-error lint-client lint-server",
+        "lint:fix": "npm-run-all --continue-on-error \"lint-client -- --fix\" \"lint-server -- --fix\"",
+        "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
+        "format:check": "prettier --check \"**/*.{js,jsx,json,md}\"",
+        "format-client": "prettier --write \"client/**/*.{js,jsx,json,md}\"",
+        "format-server": "prettier --write \"server/**/*.{js,jsx,json,md}\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.0",
+        "nodemon": "^3.0.0",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^3.6.2"
+    },
+    "authors": [
+        "Nasandratra Sartin Harivonjy Niaina",
+        "Fernando Arias",
+        "Andrew Parry"
+    ],
+    "license": "MIT"
+}
