@@ -5,17 +5,21 @@ A development board task manager built with the MERN stack (MongoDB, Express, Re
 ## Authors
 
 **Nasandratra Sartin Harivonjy Niaina**
+
 > "In difficult times carry something beautiful in your heart." - Blaise Pascal
 
 **Fernando Arias**
+
 > Hi, this is Fernando.
 
 **Andrew Parry**
+
 > "Believe in yourself, and you're already halfway there." - Theodore Roosevelt
 
 ## Tech Stack
 
 ### Frontend
+
 - **React** 19.1.0 - UI framework
 - **React Router DOM** 7.7.0 - Client-side routing
 - **Axios** - HTTP client for API requests
@@ -24,12 +28,14 @@ A development board task manager built with the MERN stack (MongoDB, Express, Re
 - **Tailwind CSS** - Utility-first CSS framework
 
 ### Backend
+
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **MongoDB** - Database
 - **Socket.io** - Real-time bidirectional communication
 
 ### Development Tools
+
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
 - **Concurrently** - Run multiple commands simultaneously
@@ -43,7 +49,7 @@ devboard/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Auth/          # User Authentication & Management
-│   │   │   ├── Dashboard/     # Project Dashboard 
+│   │   │   ├── Dashboard/     # Project Dashboard
 │   │   │   ├── Board/         # Kanban Board Interface
 │   │   │   ├── Task/          # Task Management
 │   │   │   └── Team/          # Team Collaboration
@@ -70,6 +76,7 @@ devboard/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (latest LTS version recommended)
 - MongoDB (local installation or MongoDB Atlas)
 - npm or yarn
@@ -77,38 +84,44 @@ devboard/
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd devboard
-   ```
+
+    ```bash
+    git clone <repository-url>
+    cd devboard
+    ```
 
 2. **Install all dependencies**
-   ```bash
-   npm run install-all
-   ```
 
-   Or install separately:
-   ```bash
-   npm run install-server
-   npm run install-client
-   ```
+    ```bash
+    npm run install-all
+    ```
+
+    Or install separately:
+
+    ```bash
+    npm run install-server
+    npm run install-client
+    ```
 
 3. **Set up environment variables**
-   ```bash
-   # Create .env files in both client and server directories
-   # Configuration details to be added
-   ```
+
+    ```bash
+    # Create .env files in both client and server directories
+    # Configuration details to be added
+    ```
 
 4. **Start the development servers**
-   ```bash
-   npm run dev
-   ```
 
-   This will start both the frontend (React) and backend (Express) servers concurrently.
+    ```bash
+    npm run dev
+    ```
+
+    This will start both the frontend (React) and backend (Express) servers concurrently.
 
 ### Available Scripts
 
 **Root level commands:**
+
 - `npm run dev` - Start both client and server in development mode
 - `npm run client` - Start only the React frontend
 - `npm run server` - Start only the Express backend
@@ -123,6 +136,7 @@ devboard/
 🚧 **Work in Progress** 🚧
 
 This project is currently in the initial setup phase. The following has been completed:
+
 - Project structure setup
 - Frontend and backend package configurations
 - Development tooling (ESLint, Prettier, Concurrently)
@@ -134,4 +148,4 @@ MIT
 
 ---
 
-*Last updated: Initial project setup with MERN stack configuration*
+_Last updated: Initial project setup with MERN stack configuration_

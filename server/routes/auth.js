@@ -1,41 +1,43 @@
-const passport = require("passport");
+const passport = require('passport');
 
-const router = require("express").Router();
-
-router.get("/google", passport.authenticate("google", { 
-  scope: ["profile", 'email'],
-  prompt: 'select_account'
-}));
+const router = require('express').Router();
 
 router.get(
-  "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
-  (req, res) => {
-    res.redirect("/users");
-  }
+    '/google',
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        prompt: 'select_account'
+    })
 );
 
-router.get("/logout", (req, res, next) => {
-  const sessionId = req.sessionID;
-  
-  req.logout(function(err) {
-    if (err) { 
-      console.error('Error durante logout:', err);
-      return next(err); 
+router.get(
+    '/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+        res.redirect('/users');
     }
-    
-    req.session.destroy(function(err) {
-      if (err) {
-        console.error('Error al destruir sesión:', err);
-        return next(err);
-      }
-      
-      console.log(`Sesión ${sessionId} eliminada`);
-      res.clearCookie('connect.sid');
-      res.redirect('/');
+);
+
+router.get('/logout', (req, res, next) => {
+    const sessionId = req.sessionID;
+
+    req.logout(function (err) {
+        if (err) {
+            console.error('Error durante logout:', err);
+            return next(err);
+        }
+
+        req.session.destroy(function (err) {
+            if (err) {
+                console.error('Error al destruir sesión:', err);
+                return next(err);
+            }
+
+            console.log(`Sesión ${sessionId} eliminada`);
+            res.clearCookie('connect.sid');
+            res.redirect('/');
+        });
     });
-  });
 });
 
 module.exports = router;
-
