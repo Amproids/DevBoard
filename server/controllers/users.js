@@ -1,6 +1,9 @@
 const createError = require('http-errors');
 const userService = require('../services/users.js');
-const { validateRegisterInput } = require('../validators/users.js');
+const {
+    validateRegisterInput,
+    validateLoginInput
+} = require('../validators/users.js');
 
 exports.getUsersController = async (req, res, next) => {
     try {
@@ -45,5 +48,36 @@ exports.registerUsersController = async (req, res, next) => {
         });
     } catch (error) {
         next(error);
+    }
+};
+
+exports.loginUserController = async (req, res, next) => {
+    try {
+        const { error } = validateLoginInput(req.body);
+        if (error) {
+            const errorMessages = error.details
+                .map(detail => detail.message)
+                .join('; ');
+            throw createError(400, `Validation failed: ${errorMessages}`);
+        }
+
+        const { email, password } = req.body;
+
+        const result = await userService.loginWithEmail(email, password);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                user: result.user,
+                token: result.token
+            },
+            message: 'User logged in successfully'
+        });
+    } catch (error) {
+        if (error.status === 401) {
+            next(createError(401, 'Invalid credentials'));
+        } else {
+            next(error);
+        }
     }
 };
