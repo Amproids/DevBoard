@@ -18,37 +18,35 @@ module.exports = {
         }
     },
 
-    createUser: async userData => {
+    registerWithEmail: async userData => {
         try {
+            const existingUser = await Users.findOne({ email: userData.email });
+            if (existingUser) {
+                throw createError(409, 'Email already in use');
+            }
+
             const newUser = new Users({
                 firstName: userData.firstName,
                 lastName: userData.lastName,
-                googleId: userData.googleId,
-                displayName: userData.displayName,
                 email: userData.email,
-                phoneNumber: userData.phoneNumber,
-                profile: userData.profile
+                password: userData.password,
+                displayName: `${userData.firstName} ${userData.lastName}`
             });
 
             const savedUser = await newUser.save();
 
-            if (!savedUser) {
-                throw createError(400, 'User was not created.');
-            }
+            const userToReturn = savedUser.toObject();
+            delete userToReturn.password;
 
-            return savedUser;
+            return userToReturn;
         } catch (error) {
-            console.error(
-                'Error in users.service.js -> createUser:',
-                error.message
-            );
-
-            // Manejo específico de errores de validación
             if (error.name === 'ValidationError') {
-                throw createError(422, error.message);
+                const messages = Object.values(error.errors).map(
+                    val => val.message
+                );
+                throw createError(400, messages.join(', '));
             }
-
-            throw error; // Re-lanzamos otros errores
+            throw error;
         }
     }
 };

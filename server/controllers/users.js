@@ -1,10 +1,15 @@
 const createError = require('http-errors');
 const userService = require('../services/users.js');
+const { validateRegisterInput } = require('../validators/users.js');
 
-exports.getUsersRoute = async (req, res, next) => {
+exports.getUsersController = async (req, res, next) => {
     try {
         const users = await userService.getAllUsers();
-        res.status(200).send(users);
+        res.status(201).json({
+            success: true,
+            data: users,
+            message: 'Users retrieved successfully'
+        });
     } catch (err) {
         console.log(err.message);
         if (err.status === 404) {
@@ -15,24 +20,30 @@ exports.getUsersRoute = async (req, res, next) => {
     }
 };
 
-exports.createUserRoute = async (req, res, next) => {
+exports.registerUsersController = async (req, res, next) => {
     try {
+        const { error } = validateRegisterInput(req.body);
+        if (error) {
+            const errorMessages = error.details
+                .map(detail => detail.message)
+                .join('; ');
+            throw createError(400, `Validation failed: ${errorMessages}`);
+        }
         const userData = {
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            googleId: req.body.googleId,
-            displayName: req.body.displayName,
             email: req.body.email,
-            phoneNumber: req.body.phoneNumber,
-            profile: req.body.profile
+            password: req.body.password
         };
 
-        const createdUser = await userService.createUser(userData);
+        const newUser = await userService.registerWithEmail(userData);
 
-        console.log(createdUser);
-        res.status(201).json(createdUser);
-    } catch (err) {
-        console.log(err.message);
-        next(err);
+        res.status(201).json({
+            success: true,
+            data: newUser,
+            message: 'User registered successfully'
+        });
+    } catch (error) {
+        next(error);
     }
 };
