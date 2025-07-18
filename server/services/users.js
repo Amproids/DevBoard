@@ -1,5 +1,6 @@
 const createError = require('http-errors');
 const Users = require('../models').users;
+const jwt = require('../config/jwt');
 
 module.exports = {
     getAllUsers: async () => {
@@ -46,6 +47,29 @@ module.exports = {
                 );
                 throw createError(400, messages.join(', '));
             }
+            throw error;
+        }
+    },
+    loginWithEmail: async (email, password) => {
+        try {
+            const user = await Users.findOne({ email }).select('+password');
+
+            if (!user) {
+                throw createError(401, 'Invalid credentials');
+            }
+
+            const isMatch = await user.comparePassword(password);
+            if (!isMatch) {
+                throw createError(401, 'Invalid credentials');
+            }
+
+            const token = jwt.generateToken(user);
+
+            const userToReturn = user.toObject();
+            delete userToReturn.password;
+
+            return { user: userToReturn, token };
+        } catch (error) {
             throw error;
         }
     }

@@ -3,8 +3,9 @@ const {
     getUsersController,
     registerUsersController
 } = require('../controllers/users');
+const { ensureAuth } = require('../middlewares/auth');
 
-router.get('/', getUsersController);
+router.get('/', ensureAuth, getUsersController);
 router.post('/register', registerUsersController);
 
 module.exports = router;

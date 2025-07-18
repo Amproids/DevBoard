@@ -1,6 +1,7 @@
 const passport = require('passport');
-
+const usersController = require('../controllers/users');
 const router = require('express').Router();
+const jwt = require('../config/jwt');
 
 router.get(
     '/google',
@@ -14,6 +15,16 @@ router.get(
     '/google/callback',
     passport.authenticate('google', { failureRedirect: '/' }),
     (req, res) => {
+        const token = jwt.generateToken(req.user);
+
+        if (req.accepts('json')) {
+            return res.json({
+                success: true,
+                user: req.user,
+                token
+            });
+        }
+
         res.redirect('/users');
     }
 );
@@ -23,21 +34,29 @@ router.get('/logout', (req, res, next) => {
 
     req.logout(function (err) {
         if (err) {
-            console.error('Error durante logout:', err);
-            return next(err);
+            console.error('Error during logout:', err);
+            return next(createError(500, 'Logout failed'));
         }
 
         req.session.destroy(function (err) {
             if (err) {
-                console.error('Error al destruir sesión:', err);
-                return next(err);
+                console.error('Error destroying session:', err);
+                return next(createError(500, 'Session destruction failed'));
             }
 
-            console.log(`Sesión ${sessionId} eliminada`);
+            console.log(`Session ${sessionId} destroyed`);
+
             res.clearCookie('connect.sid');
-            res.redirect('/');
+
+            res.status(200).json({
+                success: true,
+                message:
+                    'Successfully logged out. Please remove JWT token from client.'
+            });
         });
     });
 });
+
+router.post('/login', usersController.loginUserController);
 
 module.exports = router;
