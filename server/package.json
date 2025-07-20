@@ -24,9 +24,18 @@
     "license": "MIT",
     "dependencies": {
         "bcryptjs": "^3.0.2",
+        "body-parser": "^2.2.0",
+        "connect-mongo": "^5.1.0",
+        "dotenv": "^17.2.0",
         "express": "^5.1.0",
+        "express-session": "^1.18.1",
+        "http-errors": "^2.0.0",
+        "joi": "^17.13.3",
         "jsonwebtoken": "^9.0.2",
-        "mongoose": "^8.16.4"
+        "mongoose": "^8.16.4",
+        "passport": "^0.7.0",
+        "passport-google-oauth20": "^2.0.0",
+        "prettier": "^3.6.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.7.0",
