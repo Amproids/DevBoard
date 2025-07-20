@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
 export function NavBar() {
@@ -32,6 +33,7 @@ export function NavBar() {
 								}`}
 							to="/dashboard"
 						>
+							<BriefcaseIcon className="inline-block w-5 h-5 mr-2 " />
 							Dashboard
 						</Link>
 					</li>

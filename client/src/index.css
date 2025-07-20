@@ -6,5 +6,10 @@
   --color-accent: #f5a623;
   --color-background: #415971;
   --color-background-hover: #3a4c5f;
+  --color-warning: #f8d7da;
   --color-active-primary: #ffd700;
+}
+
+body {
+  overflow-y: scroll;
 }

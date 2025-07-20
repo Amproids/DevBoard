@@ -10,7 +10,7 @@ function Layout({ children }) {
 				{children}
 			</main>
 			<footer className=" text-right p-4 mt-8">
-				<p>© 2023 DevBoard</p>
+				<p>© {new Date().getFullYear()} DevBoard</p>
 			</footer>
 		</>
 	)

@@ -1,5 +1,5 @@
 const express = require('express');
-//const cors = require('cors');
+const cors = require('cors');
 const createError = require('http-errors');
 const session = require('express-session');
 const db = require('./models');
@@ -10,6 +10,8 @@ const passport = require('passport');
 require('./config/passport')(passport);
 
 const PORT = process.env.PORT || 5000;
+
+app.use(cors());
 
 app.use(
     session({

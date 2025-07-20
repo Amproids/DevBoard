@@ -1,5 +1,13 @@
+import axios from "axios";
+import { useState } from "react";
 
 function ProfileForm({ profile, setProfile }) {
+
+	const [status, setStatus] = useState({
+		success: false,
+		message: "",
+	});
+	const [loading, setLoading] = useState(false);
 
 	const handleChange = (event) => {
 		const { name, value } = event.target;
@@ -9,9 +17,42 @@ function ProfileForm({ profile, setProfile }) {
 		}));
 	};
 
-	const handleSubmit = (event) => {
-		event.preventDefault();
-		console.log("Profile submitted:", profile);
+	const handleSubmit = async (event) => {
+		try {
+			event.preventDefault();
+			setStatus({
+				success: false,
+				message: "",
+			});
+			setLoading(true);
+			const response = await axios.put(
+				"http://localhost:3000/profiles",
+				profile,
+				{
+					headers: {
+						Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`,
+					},
+				}
+			);
+			setStatus({
+				success: true,
+				message: "Profile updated successfully",
+			});
+		} catch (error) {
+			console.error("Error updating profile:", error);
+			setStatus({
+				success: false,
+				message: error.response?.data?.message || "An error occurred",
+			});
+		} finally {
+			setLoading(false);
+			setTimeout(() => {
+				setStatus({
+					success: false,
+					message: "",
+				});
+			}, 5000);
+		}
 	};
 
 	return (
@@ -19,7 +60,7 @@ function ProfileForm({ profile, setProfile }) {
 			<h2 className="text-xl font-medium mb-4 mt-4 md:mt-16">Profile Management</h2>
 			<form onSubmit={handleSubmit}>
 				<div className="flex flex-col mb-4">
-					<label htmlFor="firstName">First Name</label>
+					<label htmlFor="firstName">First Name <span className="p-1 text-red-500">*</span></label>
 					<input
 						type="text"
 						id="firstName"
@@ -28,10 +69,11 @@ function ProfileForm({ profile, setProfile }) {
 						value={profile.firstName}
 						onChange={handleChange}
 						placeholder="Enter your first name"
+						required
 					/>
 				</div>
 				<div className="flex flex-col mb-4">
-					<label htmlFor="lastName">Last Name:</label>
+					<label htmlFor="lastName">Last Name <span className="p-1 text-red-500">*</span></label>
 					<input
 						type="text"
 						id="lastName"
@@ -40,11 +82,12 @@ function ProfileForm({ profile, setProfile }) {
 						value={profile.lastName}
 						onChange={handleChange}
 						placeholder="Enter your last name"
+						required
 					/>
 				</div>
 
 				<div className="flex flex-col mb-4">
-					<label htmlFor="lastName">Display Name:</label>
+					<label htmlFor="lastName">Display Name</label>
 					<input
 						type="text"
 						id="displayName"
@@ -57,7 +100,7 @@ function ProfileForm({ profile, setProfile }) {
 				</div>
 
 				<div className="flex flex-col mb-4">
-					<label htmlFor="avatar">Profile Picture:</label>
+					<label htmlFor="avatar">Profile Picture</label>
 					<input
 						type="file"
 						id="avatar"
@@ -71,8 +114,16 @@ function ProfileForm({ profile, setProfile }) {
 					type="submit"
 					className="bg-background cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-background-hover focus:outline-none focus:ring-0"
 				>
-					Update Profile
+					{loading ? "Updating..." : "Update Profile"}
 				</button>
+				<div className="mt-4">
+					{status.success && (
+						<p className="text-green-500">{status.message}</p>
+					)}
+					{!status.success && (
+						<p className="text-red-500">{status.message}</p>
+					)}
+				</div>
 			</form>
 		</div>
 	);

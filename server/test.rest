@@ -1,0 +1,37 @@
+### testing profiles API
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+	"email": "exampli@example.com",
+	"password": "securepassword"
+}
+
+###logout
+GET http://localhost:3000/auth/logout
+
+### get profile by userId
+GET http://localhost:3000/profiles/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAyNTI3MCwiZXhwIjoxNzUzMDI4ODcwfQ._Dt9oAzHPulc2dERYWWmc_lwtfjRn-XBCdP6GPT8C5Y
+
+### update profile
+PUT http://localhost:3000/profiles/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAyMTMyMiwiZXhwIjoxNzUzMDI0OTIyfQ.69w2IO6MixV6iDSnFXPyUTNqQVCt7j62nOp6eBxjAco
+Content-Type: application/json
+
+{
+    "firstName": "newuser",
+    "lastName": "Nas",
+    "email": "example@example.com",
+    "displayName": "newuser Nas"
+}
+
+### update credentials
+PUT http://localhost:3000/profiles/credential
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAyMTMyMiwiZXhwIjoxNzUzMDI0OTIyfQ.69w2IO6MixV6iDSnFXPyUTNqQVCt7j62nOp6eBxjAco
+Content-Type: application/json
+
+{
+	"email": "exampli@example.com",
+	"password": "securepassword"
+}
