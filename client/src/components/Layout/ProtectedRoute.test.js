@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import ProtectedRoute from "./ProtectedRoute";
 import { MemoryRouter } from "react-router-dom";
+import "@testing-library/jest-dom"; 
 
 describe("ProtectedRoute", () => {
 	it("renders children when isAuthenticated is true", () => {

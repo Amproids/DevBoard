@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect } from 'vitest'; 
 import { NavBar } from './NavBar';
 
 describe('NavBar Component', () => {
-	test('renders the application title', () => {
+	it('renders the application title', () => {
 		render(
 			<MemoryRouter>
 				<NavBar />
@@ -13,7 +14,7 @@ describe('NavBar Component', () => {
 		expect(titleElement).toBeInTheDocument();
 	});
 
-	test('renders the Dashboard link', () => {
+	it('renders the Dashboard link', () => {
 		render(
 			<MemoryRouter>
 				<NavBar />
@@ -24,7 +25,7 @@ describe('NavBar Component', () => {
 		expect(dashboardLink).toHaveAttribute('href', '/dashboard');
 	});
 
-	test('renders the Profile link', () => {
+	it('renders the Profile link', () => {
 		render(
 			<MemoryRouter>
 				<NavBar />
@@ -35,7 +36,7 @@ describe('NavBar Component', () => {
 		expect(profileLink).toHaveAttribute('href', '/profile');
 	});
 
-	test('renders the Logout link', () => {
+	it('renders the Logout link', () => {
 		render(
 			<MemoryRouter>
 				<NavBar />
