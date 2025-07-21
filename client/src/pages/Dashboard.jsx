@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-function Dashboard() {
-    return (
-        <div>
-            
-        </div>
-    )
-}
-
-=======
 import Layout from "../components/Layout/Layout";
 
 function Dashboard() {
@@ -18,5 +8,4 @@ function Dashboard() {
 	);
 }
 
->>>>>>> nas
 export default Dashboard;
