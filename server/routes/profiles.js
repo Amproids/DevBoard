@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const {
     getProfile,
-	updateProfile,
-	updateCredentials
+    updateProfile,
+    updateCredentials
 } = require('../controllers/profiles');
 const { ensureAuth } = require('../middlewares/auth');
 

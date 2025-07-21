@@ -39,7 +39,10 @@ exports.updateProfile = async (req, res, next) => {
             displayName: req.body.displayName,
             avatar: req.body.avatar
         };
-        const updatedProfile = await profileService.updateProfile(userId, updateData);
+        const updatedProfile = await profileService.updateProfile(
+            userId,
+            updateData
+        );
         res.status(200).json({
             success: true,
             data: updatedProfile,
@@ -69,7 +72,10 @@ exports.updateCredentials = async (req, res, next) => {
             password: req.body.password,
             phoneNumber: req.body.phoneNumber
         };
-        const updatedCredentials = await profileService.updateCredential(userId, updateData);
+        const updatedCredentials = await profileService.updateCredential(
+            userId,
+            updateData
+        );
         res.status(200).json({
             success: true,
             data: updatedCredentials,
