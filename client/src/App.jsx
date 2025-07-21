@@ -12,16 +12,13 @@ function App() {
         <BrowserRouter>
             <div className="App">
                 <Header />
-                <main className="bg-red">
+                <main>
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/about" element={<About />} />
                     </Routes>
                 </main>
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Click me
-                </button>
                 <Footer />
             </div>
         </BrowserRouter>
