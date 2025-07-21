@@ -4,7 +4,7 @@
     "description": "Kanban project management application",
     "scripts": {
         "dev": "concurrently \"npm run server\" \"npm run client\"",
-        "client": "npm start --prefix client",
+        "client": "npm run dev --prefix client",
         "server": "npm run dev --prefix server",
         "install-client": "npm install --prefix client",
         "install-server": "npm install --prefix server",

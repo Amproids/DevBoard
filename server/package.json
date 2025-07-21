@@ -35,10 +35,14 @@
         "mongoose": "^8.16.4",
         "passport": "^0.7.0",
         "passport-google-oauth20": "^2.0.0",
-        "prettier": "^3.6.2"
+        "prettier": "^3.6.2",
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.1"
     },
     "devDependencies": {
         "@eslint/js": "^9.7.0",
+        "@types/swagger-jsdoc": "^6.0.4",
+        "@types/swagger-ui-express": "^4.1.8",
         "eslint": "^9.31.0",
         "nodemon": "^3.1.4"
     }
