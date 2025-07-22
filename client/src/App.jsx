@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Logout from './pages/Logout';
 
 function App() {
     const { isAuthenticated, isLoading, login, logout } = useAuth();
@@ -17,7 +18,7 @@ function App() {
     if (isLoading) {
         return <div>Loading...</div>;
     }
-    
+
     return (
         <Router>
             <div className="App">
@@ -51,6 +52,10 @@ function App() {
                                     <Profile />
                                 </ProtectedRoute>
                             }
+                        />
+                        <Route
+                            path="/logout"
+                            element={<Logout setIsAuthenticated={logout} />}
                         />
                     </Routes>
                 </main>
