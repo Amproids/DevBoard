@@ -1,19 +1,64 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 function Login() {
-    // TODO: Connect form submission logic here
-    const handleSubmit = e => {
-        e.preventDefault();
-        // Handle email/password login
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+
+    const handleInputChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
     };
 
-    // TODO: Connect Google OAuth logic here
-    const handleGoogleLogin = () => {
-        // Handle Google OAuth login
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, {
+                email: formData.email,
+                password: formData.password
+            });
+
+            // Handle successful login
+            const { token, user } = response.data;
+            
+            // Store token
+            localStorage.setItem('authToken', token);
+            
+            // Redirect to dashboard or home page
+            navigate('/dashboard');
+            
+        } catch (err) {
+            setError(err.response?.data?.message || 'Login failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            // Redirect to Google OAuth endpoint
+            const url = import.meta.env.VITE_API_URL + 'auth/google';
+            console.log('Redirecting to:', url);
+            window.location.href = url;
+        } catch (err) {
+            setError('Google login failed. Please try again.');
+        }
     };
 
     // TODO: Connect GitHub OAuth logic here
     const handleGitHubLogin = () => {
-    // Handle GitHub OAuth login
+        // Handle GitHub OAuth login
     };
 
     return (
@@ -39,8 +84,7 @@ function Login() {
                     <div className="space-y-3 mb-6">
                         <button
                             onClick={handleGoogleLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                        >
+                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path
                                     fill="#4285F4"
@@ -101,23 +145,37 @@ function Login() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <input
                             type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
                             placeholder="Email"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
                             required
                         />
                         <input
                             type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
                             placeholder="Password"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
                             required
                         />
                         <button
                             type="submit"
-                            className="w-full bg-[var(--color-primary)] text-gray-800 p-3 rounded-lg font-semibold hover:bg-[var(--color-secondary)] transition-colors duration-200 shadow-sm cursor-pointer"
+                            disabled={loading}
+                            className="w-full bg-[var(--color-primary)] text-gray-800 p-3 rounded-lg font-semibold hover:bg-[var(--color-secondary)] transition-colors duration-200 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Sign in
+                            {loading ? 'Signing in...' : 'Sign in'}
                         </button>
                     </form>
+
+                    {/* Error Display */}
+                    {error && (
+                        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Additional links */}
                     <div className="mt-6 text-center">
