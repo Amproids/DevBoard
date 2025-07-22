@@ -1,3 +1,4 @@
+import { Link, useLocation } from 'react-router-dom';
 function Home() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[var(--color-background)] to-white">
@@ -15,9 +16,12 @@ function Home() {
                         Streamline your development workflow with kanban-style
                         project management and real-time team collaboration.
                     </p>
-                    <button className="px-8 py-4 bg-[var(--color-primary)] text-gray-800 rounded-lg text-lg font-semibold hover:bg-[var(--color-highlight)] transform hover:scale-105 transition-all duration-200 shadow-lg">
+                    <Link 
+                        to="/register" 
+                        type="button"
+                        className="px-8 py-4 bg-[var(--color-primary)] text-gray-800 rounded-lg text-lg font-semibold hover:bg-[var(--color-highlight)] transform hover:scale-105 transition-all duration-200 shadow-lg">
                         Get Started
-                    </button>
+                    </Link>
                 </div>
             </section>
 

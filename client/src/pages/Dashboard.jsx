@@ -1,10 +1,8 @@
-import Layout from '../components/Layout/Layout';
-
 function Dashboard() {
     return (
-        <Layout>
+        <div className="container mx-auto px-4 py-8">
             <h1>Dashboard Page</h1>
-        </Layout>
+        </div>
     );
 }
 

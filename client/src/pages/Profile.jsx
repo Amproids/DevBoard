@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Layout from '../components/Layout/Layout';
 import ProfileForm from '../components/ProfileManagement/ProfileForm';
 import CredentialForm from '../components/ProfileManagement/CredentialForm';
 import AccountDeactivation from '../components/ProfileManagement/AccountDeactivation';
@@ -61,10 +60,11 @@ function Profile() {
     }, []);
 
     return (
-        <Layout>
+        <div className="container mx-auto px-4 py-8">
             {!loading && !error && (
                 <>
                     <div className="flex flex-col md:flex-row justify-center gap-20 mx-auto p-4 md:max-w-5xl">
+                        {/* existing content stays the same */}
                         <div className="w-full">
                             <ProfileForm
                                 profile={profile}
@@ -95,7 +95,7 @@ function Profile() {
                     <AccountDeactivation />
                 </div>
             )}
-        </Layout>
+        </div>
     );
 }
 
