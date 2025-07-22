@@ -20,8 +20,9 @@ function App() {
     }
 
     return (
+        <div className="min-h-screen">
         <Router>
-            <div className="App">
+            <div className="App min-h-screen flex flex-col">
                 <Header isAuthenticated={isAuthenticated} />
                 <main>
                     <Routes>
@@ -62,6 +63,7 @@ function App() {
                 <Footer />
             </div>
         </Router>
+        </div>
     );
 }
 
