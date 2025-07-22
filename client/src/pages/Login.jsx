@@ -48,8 +48,6 @@ function Login() {
     const handleGoogleLogin = async () => {
         try {
             // Redirect to Google OAuth endpoint
-            console.log('Redirecting to Google OAuth endpoint...');
-            console.log(`${import.meta.env.VITE_API_BASE_URL}/auth/google`);
             const url = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
             console.log('Redirecting to:', url);
             window.location.href = url;

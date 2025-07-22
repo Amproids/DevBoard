@@ -16,16 +16,8 @@ router.get(
     passport.authenticate('google', { failureRedirect: '/' }),
     (req, res) => {
         const token = jwt.generateToken(req.user);
-
-        if (req.accepts('json')) {
-            return res.json({
-                success: true,
-                user: req.user,
-                token
-            });
-        }
-
-        res.redirect('/users');
+        const frontendUrl = process.env.FRONTEND_URL;
+        res.redirect(`${frontendUrl}/dashboard?token=${token}`);
     }
 );
 

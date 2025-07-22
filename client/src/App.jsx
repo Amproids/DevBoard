@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import useAuth from './hooks/useAuth';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/Layout/ProtectedRoute';
 
@@ -12,7 +12,11 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { isAuthenticated, isLoading, login, logout } = useAuth();
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
     
     return (
         <Router>
@@ -26,7 +30,7 @@ function App() {
                         />
                         <Route
                             path="/login"
-                            element={<Login setIsAuthenticated={setIsAuthenticated} />}
+                            element={<Login setIsAuthenticated={login} />}
                         />
                         <Route
                             path="/register"
