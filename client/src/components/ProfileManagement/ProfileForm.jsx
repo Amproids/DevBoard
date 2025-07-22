@@ -25,7 +25,7 @@ function ProfileForm({ profile, setProfile }) {
             });
             setLoading(true);
             const response = await axios.put(
-                'http://localhost:3000/profiles',
+                `${process.env.REACT_APP_API_URL}/profiles`,
                 profile,
                 {
                     headers: {

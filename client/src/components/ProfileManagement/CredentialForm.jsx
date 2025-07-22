@@ -30,7 +30,7 @@ function CredentialForm({ credentials, setCredentials }) {
                 };
             }
             const response = await axios.put(
-                'http://localhost:3000/credentials',
+                `${process.env.REACT_APP_API_URL}/credentials`,
                 credentials,
                 {
                     headers: {
