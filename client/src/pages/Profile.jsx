@@ -28,7 +28,7 @@ function Profile() {
                 setLoading(true);
                 setError(false);
                 const response = await axios.get(
-                    `${process.env.REACT_APP_API_URL}/profiles`,
+                    `${import.meta.env.VITE_API_BASE_URL}/profiles`,
                     {
                         headers: {
                             Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`

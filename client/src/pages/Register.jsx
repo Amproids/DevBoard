@@ -44,7 +44,7 @@ function Register() {
 
             // Make API call to register
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/register`,
+                `${import.meta.env.VITE_API_BASE_URL}/register`,
                 {
                     firstName: formData.firstName,
                     lastName: formData.lastName,

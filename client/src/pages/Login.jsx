@@ -24,7 +24,7 @@ function Login() {
         setError('');
 
         try {
-            const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
                 email: formData.email,
                 password: formData.password
             });
@@ -48,7 +48,9 @@ function Login() {
     const handleGoogleLogin = async () => {
         try {
             // Redirect to Google OAuth endpoint
-            const url = import.meta.env.VITE_API_URL + 'auth/google';
+            console.log('Redirecting to Google OAuth endpoint...');
+            console.log(`${import.meta.env.VITE_API_BASE_URL}/auth/google`);
+            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
             console.log('Redirecting to:', url);
             window.location.href = url;
         } catch (err) {
