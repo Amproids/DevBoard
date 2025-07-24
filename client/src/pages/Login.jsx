@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function Login() {
+function Login({ setIsAuthenticated}) {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -34,6 +34,9 @@ function Login() {
             
             // Store token
             localStorage.setItem('authToken', token);
+            
+            // Update user state
+            setIsAuthenticated();
             
             // Redirect to dashboard or home page
             navigate('/dashboard');
