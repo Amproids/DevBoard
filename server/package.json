@@ -9,7 +9,9 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "swagger": "node ./config/swagger.js"
+        "swagger": "node ./config/swagger.js",
+        "debug": "node --inspect server.js",
+        "debug:dev": "nodemon --inspect server.js"
     },
     "keywords": [
         "kanban",
