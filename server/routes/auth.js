@@ -1,5 +1,5 @@
 const passport = require('passport');
-const usersController = require('../controllers/users');
+const authController = require('../controllers/auth');
 const router = require('express').Router();
 const jwt = require('../config/jwt');
 
@@ -49,6 +49,6 @@ router.get('/logout', (req, res, next) => {
     });
 });
 
-router.post('/login', usersController.loginUserController);
+router.post('/login', authController.loginController);
 
 module.exports = router;
