@@ -1,6 +1,6 @@
 const createError = require('http-errors');
 const userService = require('../services/users.js');
-const { validateRegisterInput } = require('../validators/users.js');
+const userValidator = require('../validators/users.js');
 
 const getUsersController = async (req, res, next) => {
     try {
@@ -22,7 +22,7 @@ const getUsersController = async (req, res, next) => {
 
 const registerUsersController = async (req, res, next) => {
     try {
-        const { error } = validateRegisterInput(req.body);
+        const { error } = userValidator.validateRegisterInput(req.body);
         if (error) {
             const errorMessages = error.details
                 .map(detail => detail.message)
@@ -56,7 +56,67 @@ const registerUsersController = async (req, res, next) => {
     }
 };
 
+const updateUsersProfileController = async (req, res, next) => {
+    try {
+        const { error } = userValidator.validateUpdateInput(req.body);
+        if (error) {
+            const errorMessages = error.details
+                .map(detail => detail.message)
+                .join('; ');
+            throw createError(400, `Validation failed: ${errorMessages}`);
+        }
+
+        const userId = req.params.id;
+
+        const updatedUser = await userService.updateUsersProfileService(
+            userId,
+            req.body
+        );
+
+        res.status(200).json({
+            success: true,
+            data: updatedUser,
+            message: 'Profile updated successfully'
+        });
+    } catch (err) {
+        console.log(err.message);
+
+        if (err.status === 400 || err.status === 404 || err.status === 409) {
+            next(err);
+        } else {
+            next(createError(500, 'Error updating profile'));
+        }
+    }
+};
+
+const deletUsersController = async (req, res, next) => {
+    try {
+        const currentUserId = req.params.id;
+
+        const result = await userService.deleteUsersService(
+            currentUserId,
+            currentUserId
+        );
+
+        res.status(200).json({
+            success: true,
+            data: result,
+            message: 'Your account has been deleted successfully'
+        });
+    } catch (err) {
+        console.log('Error in deleteMyAccountController:', err.message);
+
+        if (err.status === 403 || err.status === 404 || err.status === 500) {
+            next(err);
+        } else {
+            next(createError(500, 'Error deleting account'));
+        }
+    }
+};
+
 module.exports = {
     getUsersController,
-    registerUsersController
+    registerUsersController,
+    updateUsersProfileController,
+    deletUsersController
 };
