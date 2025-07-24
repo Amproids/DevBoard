@@ -9,7 +9,9 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "swagger": "node ./config/swagger.js"
+        "swagger": "node ./config/swagger.js",
+        "debug": "node --inspect server.js",
+        "debug:dev": "nodemon --inspect server.js"
     },
     "keywords": [
         "kanban",
@@ -36,6 +38,7 @@
         "jsonwebtoken": "^9.0.2",
         "mongoose": "^8.16.4",
         "passport": "^0.7.0",
+        "passport-github2": "^0.1.12",
         "passport-google-oauth20": "^2.0.0",
         "prettier": "^3.6.2",
         "swagger-jsdoc": "^6.2.8",

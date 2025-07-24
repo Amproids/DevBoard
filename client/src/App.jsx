@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import useAuth from './hooks/useAuth';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/Layout/ProtectedRoute';
 
@@ -10,13 +10,19 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Logout from './pages/Logout';
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    
+    const { isAuthenticated, isLoading, login, logout } = useAuth();
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
     return (
+        <div className="min-h-screen">
         <Router>
-            <div className="App">
+            <div className="App min-h-screen flex flex-col">
                 <Header isAuthenticated={isAuthenticated} />
                 <main>
                     <Routes>
@@ -26,7 +32,7 @@ function App() {
                         />
                         <Route
                             path="/login"
-                            element={<Login setIsAuthenticated={setIsAuthenticated} />}
+                            element={<Login setIsAuthenticated={login} />}
                         />
                         <Route
                             path="/register"
@@ -48,11 +54,16 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
+                        <Route
+                            path="/logout"
+                            element={<Logout setIsAuthenticated={logout} />}
+                        />
                     </Routes>
                 </main>
                 <Footer />
             </div>
         </Router>
+        </div>
     );
 }
 

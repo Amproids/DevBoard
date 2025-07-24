@@ -44,7 +44,7 @@ function Register() {
 
             // Make API call to register
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/register`,
+                `${import.meta.env.VITE_API_BASE_URL}/register`,
                 {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -75,14 +75,32 @@ function Register() {
         }
     };
 
-    // TODO: Connect Google OAuth logic here
-    const handleGoogleLogin = () => {
-        // Handle Google OAuth login
+    const handleGoogleLogin = async () => {
+        try {
+            // Redirect to Google OAuth endpoint
+            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+            console.log('Redirecting to Google:', url);
+            window.location.href = url;
+        } catch (err) {
+            setStatus({
+                success: false,
+                message: 'Google signup failed. Please try again.'
+            });
+        }
     };
 
-    // TODO: Connect GitHub OAuth logic here
-    const handleGitHubLogin = () => {
-        // Handle GitHub OAuth login
+    const handleGitHubLogin = async () => {
+        try {
+            // Redirect to GitHub OAuth endpoint
+            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/github`;
+            console.log('Redirecting to GitHub:', url);
+            window.location.href = url;
+        } catch (err) {
+            setStatus({
+                success: false,
+                message: 'GitHub signup failed. Please try again.'
+            });
+        }
     };
 
     return (
@@ -109,7 +127,7 @@ function Register() {
                     <div className="space-y-3 mb-6">
                         <button
                             onClick={handleGoogleLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path
@@ -136,7 +154,7 @@ function Register() {
 
                         <button
                             onClick={handleGitHubLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                         >
                             <svg
                                 className="w-5 h-5"
@@ -160,7 +178,11 @@ function Register() {
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-300"></div>
                         </div>
-                        <div className="relative flex justify-center text-sm"></div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-white text-gray-500">
+                                Or continue with email
+                            </span>
+                        </div>
                     </div>
 
                     {/* Email/Password Form */}

@@ -30,7 +30,7 @@ function CredentialForm({ credentials, setCredentials }) {
                 };
             }
             const response = await axios.put(
-                `${process.env.REACT_APP_API_URL}/credentials`,
+                `${import.meta.env.VITE_API_BASE_URL}/credentials`,
                 credentials,
                 {
                     headers: {

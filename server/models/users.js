@@ -27,6 +27,16 @@ module.exports = mongoose => {
                 minlength: [6, 'Password must be at least 6 characters'],
                 select: false
             },
+            githubId: {
+                type: String,
+                unique: true,
+                sparse: true
+            },
+            username: {
+                type: String,
+                unique: true,
+                sparse: true
+            },
             googleId: {
                 type: String,
                 unique: true,
