@@ -3,6 +3,7 @@ const authController = require('../controllers/auth');
 const router = require('express').Router();
 const jwt = require('../config/jwt');
 
+// Google OAuth Routes
 router.get(
     '/google',
     passport.authenticate('google', {
@@ -21,6 +22,25 @@ router.get(
     }
 );
 
+// GitHub OAuth Routes
+router.get(
+  '/github',
+  passport.authenticate('github', {
+    scope: ['user:email']
+  })
+);
+
+router.get(
+  '/github/callback',
+  passport.authenticate('github', { failureRedirect: '/' }),
+  (req, res) => {
+    const token = jwt.generateToken(req.user);
+    const frontendUrl = process.env.FRONTEND_URL;
+    res.redirect(`${frontendUrl}/dashboard?token=${token}`);
+  }
+);
+
+// Logout Route
 router.get('/logout', (req, res, next) => {
     const sessionId = req.sessionID;
 

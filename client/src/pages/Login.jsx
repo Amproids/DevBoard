@@ -61,7 +61,14 @@ function Login({ setIsAuthenticated}) {
 
     // TODO: Connect GitHub OAuth logic here
     const handleGitHubLogin = () => {
-        // Handle GitHub OAuth login
+        try {
+            // Redirect to GitHub OAuth endpoint
+            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/github`;
+            console.log('Redirecting to GitHub:', url);
+            window.location.href = url;
+        } catch (err) {
+            setError('GitHub login failed. Please try again.');
+        }
     };
 
     return (
@@ -113,7 +120,7 @@ function Login({ setIsAuthenticated}) {
 
                         <button
                             onClick={handleGitHubLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                         >
                             <svg
                                 className="w-5 h-5"
