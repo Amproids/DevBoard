@@ -64,7 +64,7 @@ const validateLoginInput = data => {
     return schema.validate(data, { abortEarly: false });
 };
 
-const validateUpdateInput = data => {
+const validateUpdateInput = (data, userHasPassword = false) => {
     const schema = Joi.object({
         firstName: Joi.string().messages({
             'string.empty': 'First name cannot be empty'
@@ -88,11 +88,15 @@ const validateUpdateInput = data => {
 
         currentPassword: Joi.string().when('password', {
             is: Joi.exist(),
-            then: Joi.string().required().messages({
-                'string.empty':
-                    'Current password is required to change password',
-                'any.required':
-                    'Current password is required to change password'
+            then: Joi.when(Joi.ref('$userHasPassword'), {
+                is: true,
+                then: Joi.string().required().messages({
+                    'string.empty':
+                        'Current password is required to change password',
+                    'any.required':
+                        'Current password is required to change password'
+                }),
+                otherwise: Joi.string().optional().allow('')
             })
         }),
 
@@ -108,7 +112,8 @@ const validateUpdateInput = data => {
 
     return schema.validate(data, {
         abortEarly: false,
-        stripUnknown: true
+        stripUnknown: true,
+        context: { userHasPassword }
     });
 };
 
