@@ -1,6 +1,7 @@
 const createError = require('http-errors');
 const Boards = require('../models').boards;
 const Users = require('../models').users;
+const Invitations = require('../models').invitations;
 
 const verifyMembersExist = async members => {
     const userIds = members.map(m => m.user);
@@ -163,7 +164,9 @@ const deleteBoardService = async (boardId, userId) => {
         }
 
         // Optional: Eliminate others resources
-        // como columnas, tareas, etc.
+        // such as columns, tareas, etc.
+        // Eliminar las invitaciones asociadas al board
+        await Invitations.deleteMany({ board: boardId });
 
         return {
             success: true,
