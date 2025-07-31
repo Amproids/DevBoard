@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const Invitations = require('../models').invitations;
 const Boards = require('../models').boards;
 const Users = require('../models').users;
+const { sendInvitationEmail } = require('./email');
 
 const inviteToBoardService = async (boardId, email, role, inviterId) => {
     try {
@@ -67,8 +68,12 @@ const inviteToBoardService = async (boardId, email, role, inviterId) => {
 
         const savedInvitation = await newInvitation.save();
 
-        // 6. Enviar email de invitación (implementación externa)
-        // await sendInvitationEmail(email, token, board.name, inviterName);
+        const inviter = await Users.findById(inviterId).select(
+            'firstName lastName email'
+        );
+        const inviterName = `${inviter.firstName} ${inviter.lastName}`;
+
+        await sendInvitationEmail(email, token, board.name, inviterName);
 
         return {
             success: true,

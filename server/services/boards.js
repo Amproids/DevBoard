@@ -1,6 +1,8 @@
 const createError = require('http-errors');
 const Boards = require('../models').boards;
 const Users = require('../models').users;
+const Invitations = require('../models').invitations;
+const Columns = require('../models').columns;
 
 const verifyMembersExist = async members => {
     const userIds = members.map(m => m.user);
@@ -163,7 +165,10 @@ const deleteBoardService = async (boardId, userId) => {
         }
 
         // Optional: Eliminate others resources
-        // como columnas, tareas, etc.
+        // such as columns, tareas, etc.
+        // Eliminar las invitaciones asociadas al board
+        await Invitations.deleteMany({ board: boardId });
+        await Columns.deleteMany({ board: boardId });
 
         return {
             success: true,
@@ -205,9 +210,14 @@ const getBoardsService = async (userId, filterOptions = {}) => {
         }
 
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
+            query.$and = [
+                { $or: [{ owner: userId }, { 'members.user': userId }] },
+                {
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { description: { $regex: search, $options: 'i' } }
+                    ]
+                }
             ];
         }
 
@@ -220,8 +230,26 @@ const getBoardsService = async (userId, filterOptions = {}) => {
 
         const boards = await Boards.find(query)
             .sort(sortOption)
-            .populate('owner', 'firstName lastName email avatar')
-            .populate('members.user', 'firstName lastName email avatar');
+            .populate({
+                path: 'owner',
+                select: 'firstName lastName email avatar'
+            })
+            .populate({
+                path: 'members.user',
+                select: 'firstName lastName email avatar'
+            })
+            .populate({
+                path: 'columns',
+                select: 'name order isLocked tasks',
+                populate: {
+                    path: 'tasks',
+                    select: 'title description dueDate priority assignees',
+                    populate: {
+                        path: 'assignees',
+                        select: 'firstName lastName avatar email'
+                    }
+                }
+            });
 
         return {
             success: true,
