@@ -5,5 +5,6 @@ router.use('/users', require('./users'));
 router.use('/profiles', require('./profiles'));
 router.use('/boards', require('./boards'));
 router.use('/invitations', require('./invitations'));
+router.use('/columns', require('./columns'));
 
 module.exports = router;
