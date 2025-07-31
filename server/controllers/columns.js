@@ -66,21 +66,24 @@ const getColumnsController = async (req, res, next) => {
             throw createError(400, `Validation failed: ${errorMessages}`);
         }
 
+        const userId = req.user.id;
+        if (!userId) {
+            throw createError(401, 'Authentication required');
+        }
+
         const result = await columnService.getColumnsByBoardService(
             req.params.boardId,
-            req.user.id,
-            {
-                sort: req.query.sort,
-                populateTasks: req.query.populateTasks === 'true'
-            }
+            userId,
+            req.query
         );
 
         res.status(200).json({
             success: true,
-            data: {
-                boardLocked: result.boardLocked,
+            data: result.data,
+            meta: {
                 count: result.count,
-                columns: result.columns
+                filters: result.filters,
+                sort: result.sort
             },
             message: 'Columns retrieved successfully'
         });

@@ -210,9 +210,14 @@ const getBoardsService = async (userId, filterOptions = {}) => {
         }
 
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
+            query.$and = [
+                { $or: [{ owner: userId }, { 'members.user': userId }] },
+                {
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { description: { $regex: search, $options: 'i' } }
+                    ]
+                }
             ];
         }
 
@@ -225,8 +230,26 @@ const getBoardsService = async (userId, filterOptions = {}) => {
 
         const boards = await Boards.find(query)
             .sort(sortOption)
-            .populate('owner', 'firstName lastName email avatar')
-            .populate('members.user', 'firstName lastName email avatar');
+            .populate({
+                path: 'owner',
+                select: 'firstName lastName email avatar'
+            })
+            .populate({
+                path: 'members.user',
+                select: 'firstName lastName email avatar'
+            })
+            .populate({
+                path: 'columns',
+                select: 'name order isLocked tasks',
+                populate: {
+                    path: 'tasks',
+                    select: 'title description dueDate priority assignees',
+                    populate: {
+                        path: 'assignees',
+                        select: 'firstName lastName avatar email'
+                    }
+                }
+            });
 
         return {
             success: true,

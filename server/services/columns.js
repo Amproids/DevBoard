@@ -79,6 +79,17 @@ const updateColumnService = async (columnId, updateData, userId) => {
 
         if (updateData.order !== undefined) {
             const newOrder = updateData.order;
+            const maxOrder =
+                (await Columns.countDocuments({
+                    board: column.board._id
+                }).session(session)) - 1;
+
+            if (newOrder < 0 || newOrder > maxOrder) {
+                throw createError(
+                    400,
+                    `Order must be between 0 and ${maxOrder}`
+                );
+            }
 
             const existingColumn = await Columns.findOne({
                 board: column.board._id,
@@ -93,7 +104,8 @@ const updateColumnService = async (columnId, updateData, userId) => {
                     suggestedOrder: await getNextAvailableOrder(
                         column.board._id,
                         newOrder
-                    )
+                    ),
+                    currentMaxOrder: maxOrder
                 });
             }
         }
@@ -123,16 +135,28 @@ const updateColumnService = async (columnId, updateData, userId) => {
 };
 
 const getNextAvailableOrder = async (boardId, desiredOrder) => {
-    const nextColumn = await Columns.findOne({
-        board: boardId,
-        order: { $gt: desiredOrder }
-    }).sort({ order: 1 });
+    const columns = await Columns.find({ board: boardId })
+        .sort({ order: 1 })
+        .select('order');
 
-    return nextColumn ? nextColumn.order - 1 : desiredOrder + 1;
+    for (let i = desiredOrder; i < columns.length; i++) {
+        if (columns[i].order > i) {
+            return i;
+        }
+    }
+
+    return columns.length;
 };
 
-const getColumnsByBoardService = async (boardId, userId, options = {}) => {
+const getColumnsByBoardService = async (
+    boardId,
+    userId,
+    filterOptions = {}
+) => {
     try {
+        const { sort = 'order', populateTasks = false } = filterOptions;
+
+        // Verify board access
         const board = await Boards.findOne({
             _id: boardId,
             $or: [{ owner: userId }, { 'members.user': userId }]
@@ -146,12 +170,17 @@ const getColumnsByBoardService = async (boardId, userId, options = {}) => {
         }
 
         const query = { board: boardId };
-        const sortOption =
-            options.sort === '-order' ? { order: -1 } : { order: 1 };
+
+        // Sort options
+        let sortOption = {};
+        if (sort === 'order' || sort === '-order') {
+            sortOption.order = sort === 'order' ? 1 : -1;
+        }
 
         let columnsQuery = Columns.find(query).sort(sortOption);
 
-        if (options.populateTasks) {
+        // Optional population
+        if (populateTasks) {
             columnsQuery = columnsQuery.populate({
                 path: 'tasks',
                 select: 'title description assignees dueDate',
@@ -162,13 +191,26 @@ const getColumnsByBoardService = async (boardId, userId, options = {}) => {
         const columns = await columnsQuery;
 
         return {
-            boardLocked: board.lockedColumns || false,
+            success: true,
             count: columns.length,
-            columns
+            data: {
+                boardLocked: board.lockedColumns || false,
+                columns
+            },
+            filters: {
+                applied: { populateTasks },
+                available: {
+                    populateTasks: [true, false]
+                }
+            },
+            sort: {
+                applied: sort,
+                available: ['order', '-order']
+            }
         };
     } catch (err) {
         console.error('Error in getColumnsByBoardService:', err.message);
-        throw err;
+        throw createError(500, 'Error retrieving columns');
     }
 };
 
