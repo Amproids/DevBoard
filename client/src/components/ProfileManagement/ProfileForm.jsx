@@ -24,12 +24,19 @@ function ProfileForm({ profile, setProfile }) {
                 message: ''
             });
             setLoading(true);
+
+            // Get token from localStorage
+            const token = localStorage.getItem('authToken');
+
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
             const response = await axios.put(
                 `${import.meta.env.VITE_API_BASE_URL}/profiles`,
                 profile,
                 {
                     headers: {
-                        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`
+                        Authorization: `Bearer ${token}`
                     }
                 }
             );
@@ -41,7 +48,7 @@ function ProfileForm({ profile, setProfile }) {
             console.error('Error updating profile:', error);
             setStatus({
                 success: false,
-                message: error.response?.data?.message || 'An error occurred'
+                message: error.response?.data?.message || error.message || 'An error occurred'
             });
         } finally {
             setLoading(false);

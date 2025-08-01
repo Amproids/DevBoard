@@ -24,17 +24,26 @@ function CredentialForm({ credentials, setCredentials }) {
                 message: ''
             });
             setLoading(true);
+            
             if (credentials.password !== credentials.confirmPassword) {
                 throw {
                     response: { data: { message: 'Passwords do not match' } }
                 };
             }
+            
+            // Get token from localStorage instead of hardcoding
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+            
             const response = await axios.put(
                 `${import.meta.env.VITE_API_BASE_URL}/credentials`,
                 credentials,
                 {
                     headers: {
-                        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`
+                        Authorization: `Bearer ${token}`
                     }
                 }
             );
@@ -43,10 +52,10 @@ function CredentialForm({ credentials, setCredentials }) {
                 message: 'Credentials updated successfully'
             });
         } catch (error) {
-            console.error('Error updating profile:', error);
+            console.error('Error updating credentials:', error);
             setStatus({
                 success: false,
-                message: error.response?.data?.message || 'An error occurred!'
+                message: error.response?.data?.message || error.message || 'An error occurred!'
             });
         } finally {
             setTimeout(() => {
@@ -72,7 +81,7 @@ function CredentialForm({ credentials, setCredentials }) {
                     <input
                         type="email"
                         id="email"
-                        className="border border-gray-300  rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="email"
                         value={credentials.email}
                         onChange={handleChange}
@@ -135,7 +144,7 @@ function CredentialForm({ credentials, setCredentials }) {
                     {status.success && (
                         <p className="text-green-500">{status.message}</p>
                     )}
-                    {!status.success && (
+                    {!status.success && status.message && (
                         <p className="text-red-500">{status.message}</p>
                     )}
                 </div>
