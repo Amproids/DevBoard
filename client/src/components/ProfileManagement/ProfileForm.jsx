@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function ProfileForm({ profile, setProfile }) {
     const [status, setStatus] = useState({
@@ -7,13 +7,56 @@ function ProfileForm({ profile, setProfile }) {
         message: ''
     });
     const [loading, setLoading] = useState(false);
+    const [originalProfile, setOriginalProfile] = useState({
+        firstName: '',
+        lastName: '',
+        displayName: '',
+        avatar: null
+    });
+    const [hasChanges, setHasChanges] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    // Store original profile when it's loaded
+    useEffect(() => {
+        // Only set original profile once when data is first loaded
+        if (!isInitialized && (profile.firstName || profile.lastName || profile.displayName)) {
+            setOriginalProfile({
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
+                displayName: profile.displayName || '',
+                avatar: profile.avatar || null
+            });
+            setIsInitialized(true);
+        }
+    }, [profile.firstName, profile.lastName, profile.displayName, profile.avatar, isInitialized]);
+
+    // Check for changes whenever profile changes
+    useEffect(() => {
+        if (!isInitialized) return; // Don't check for changes until we have original values
+        
+        const firstNameChanged = profile.firstName !== originalProfile.firstName;
+        const lastNameChanged = profile.lastName !== originalProfile.lastName;
+        const displayNameChanged = profile.displayName !== originalProfile.displayName;
+        const avatarChanged = profile.avatar !== originalProfile.avatar;
+        
+        const changesDetected = firstNameChanged || lastNameChanged || displayNameChanged || avatarChanged;
+        setHasChanges(changesDetected);
+    }, [profile, originalProfile, isInitialized]);
 
     const handleChange = event => {
-        const { name, value } = event.target;
-        setProfile(prevProfile => ({
-            ...prevProfile,
-            [name]: value
-        }));
+        const { name, value, files } = event.target;
+        
+        if (name === 'avatar' && files && files[0]) {
+            setProfile(prevProfile => ({
+                ...prevProfile,
+                [name]: files[0]
+            }));
+        } else {
+            setProfile(prevProfile => ({
+                ...prevProfile,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async event => {
@@ -31,6 +74,7 @@ function ProfileForm({ profile, setProfile }) {
             if (!token) {
                 throw new Error('Authentication token not found');
             }
+            
             const response = await axios.put(
                 `${import.meta.env.VITE_API_BASE_URL}/profiles`,
                 profile,
@@ -40,10 +84,20 @@ function ProfileForm({ profile, setProfile }) {
                     }
                 }
             );
+            
             setStatus({
                 success: true,
                 message: 'Profile updated successfully'
             });
+            
+            // Update original profile after successful save
+            setOriginalProfile({
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+                displayName: profile.displayName,
+                avatar: profile.avatar
+            });
+            
         } catch (error) {
             console.error('Error updating profile:', error);
             setStatus({
@@ -75,8 +129,8 @@ function ProfileForm({ profile, setProfile }) {
                         type="text"
                         id="firstName"
                         name="firstName"
-                        className="border border-gray-300   rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.firstName}
+                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        value={profile.firstName || ''}
                         onChange={handleChange}
                         placeholder="Enter your first name"
                         required
@@ -91,7 +145,7 @@ function ProfileForm({ profile, setProfile }) {
                         id="lastName"
                         name="lastName"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.lastName}
+                        value={profile.lastName || ''}
                         onChange={handleChange}
                         placeholder="Enter your last name"
                         required
@@ -99,13 +153,13 @@ function ProfileForm({ profile, setProfile }) {
                 </div>
 
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="lastName">Display Name</label>
+                    <label htmlFor="displayName">Display Name</label>
                     <input
                         type="text"
                         id="displayName"
                         name="displayName"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.displayName}
+                        value={profile.displayName || ''}
                         onChange={handleChange}
                         placeholder="Enter your display name"
                     />
@@ -123,8 +177,13 @@ function ProfileForm({ profile, setProfile }) {
                     />
                 </div>
                 <button
+                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                        hasChanges && !loading
+                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                     type="submit"
-                    className="bg-background cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-background-hover focus:outline-none focus:ring-0"
+                    disabled={!hasChanges || loading}
                 >
                     {loading ? 'Updating...' : 'Update Profile'}
                 </button>
@@ -132,7 +191,7 @@ function ProfileForm({ profile, setProfile }) {
                     {status.success && (
                         <p className="text-green-500">{status.message}</p>
                     )}
-                    {!status.success && (
+                    {!status.success && status.message && (
                         <p className="text-red-500">{status.message}</p>
                     )}
                 </div>

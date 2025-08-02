@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function CredentialForm({ credentials, setCredentials }) {
     const [status, setStatus] = useState({
@@ -7,6 +7,37 @@ function CredentialForm({ credentials, setCredentials }) {
         message: ''
     });
     const [loading, setLoading] = useState(false);
+    const [originalCredentials, setOriginalCredentials] = useState({
+        email: '',
+        phoneNumber: ''
+    });
+    const [hasChanges, setHasChanges] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    // Store original credentials when they're loaded
+    useEffect(() => {
+        // Only set original credentials once when data is first loaded
+        if (!isInitialized && (credentials.email || credentials.phoneNumber)) {
+            setOriginalCredentials({
+                email: credentials.email || '',
+                phoneNumber: credentials.phoneNumber || ''
+            });
+            setIsInitialized(true);
+        }
+    }, [credentials.email, credentials.phoneNumber, isInitialized]);
+
+    // Check for changes whenever credentials change
+    useEffect(() => {
+        if (!isInitialized) return; // Don't check for changes until we have original values
+        
+        const emailChanged = credentials.email !== originalCredentials.email;
+        const phoneChanged = credentials.phoneNumber !== originalCredentials.phoneNumber;
+        const hasPassword = credentials.password && credentials.password.length > 0;
+        const hasConfirmPassword = credentials.confirmPassword && credentials.confirmPassword.length > 0;
+        
+        const changesDetected = emailChanged || phoneChanged || hasPassword || hasConfirmPassword;
+        setHasChanges(changesDetected);
+    }, [credentials, originalCredentials, isInitialized]);
 
     const handleChange = event => {
         const { name, value } = event.target;
@@ -51,6 +82,20 @@ function CredentialForm({ credentials, setCredentials }) {
                 success: true,
                 message: 'Credentials updated successfully'
             });
+            
+            // Update original credentials after successful save
+            setOriginalCredentials({
+                email: credentials.email,
+                phoneNumber: credentials.phoneNumber
+            });
+            
+            // Clear passwords after successful update
+            setCredentials(prev => ({
+                ...prev,
+                password: '',
+                confirmPassword: ''
+            }));
+            
         } catch (error) {
             console.error('Error updating credentials:', error);
             setStatus({
@@ -83,7 +128,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="email"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="email"
-                        value={credentials.email}
+                        value={credentials.email || ''}
                         onChange={handleChange}
                         placeholder="Enter your email"
                         required
@@ -96,7 +141,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="phoneNumber"
                         name="phoneNumber"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={credentials.phoneNumber}
+                        value={credentials.phoneNumber || ''}
                         onChange={handleChange}
                         placeholder="Enter your phone number"
                     />
@@ -110,7 +155,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="password"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="password"
-                        value={credentials.password}
+                        value={credentials.password || ''}
                         onChange={handleChange}
                         placeholder="Enter your password"
                         required
@@ -127,7 +172,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="confirmPassword"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="confirmPassword"
-                        value={credentials.confirmPassword}
+                        value={credentials.confirmPassword || ''}
                         onChange={handleChange}
                         placeholder="Confirm your password"
                         required
@@ -135,8 +180,13 @@ function CredentialForm({ credentials, setCredentials }) {
                     />
                 </div>
                 <button
-                    className="bg-background cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-background-hover focus:outline-none focus:ring-0"
+                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                        hasChanges && !loading
+                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                     type="submit"
+                    disabled={!hasChanges || loading}
                 >
                     {loading ? 'Updating...' : 'Update Credentials'}
                 </button>
