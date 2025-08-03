@@ -1,47 +1,30 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+// components/ProfileForm.jsx
+import React, { useEffect } from 'react';
+import { profileService } from '../../services/profileService';
+import { useFormStatus } from '../../hooks/useFormStatus';
+import { useFormChanges } from '../../hooks/useFormChanges';
 
 function ProfileForm({ profile, setProfile }) {
-    const [status, setStatus] = useState({
-        success: false,
-        message: ''
-    });
-    const [loading, setLoading] = useState(false);
-    const [originalProfile, setOriginalProfile] = useState({
-        firstName: '',
-        lastName: '',
-        displayName: '',
-        avatar: null
-    });
-    const [hasChanges, setHasChanges] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
-
-    // Store original profile when it's loaded
-    useEffect(() => {
-        // Only set original profile once when data is first loaded
-        if (!isInitialized && (profile.firstName || profile.lastName || profile.displayName)) {
-            setOriginalProfile({
-                firstName: profile.firstName || '',
-                lastName: profile.lastName || '',
-                displayName: profile.displayName || '',
-                avatar: profile.avatar || null
-            });
-            setIsInitialized(true);
-        }
-    }, [profile.firstName, profile.lastName, profile.displayName, profile.avatar, isInitialized]);
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    
+    const { 
+        hasChanges, 
+        checkForChanges, 
+        updateOriginalData 
+    } = useFormChanges(
+        {
+            firstName: profile.firstName || '',
+            lastName: profile.lastName || '',
+            displayName: profile.displayName || '',
+            avatar: profile.avatar || null
+        },
+        [profile.firstName, profile.lastName, profile.displayName, profile.avatar]
+    );
 
     // Check for changes whenever profile changes
     useEffect(() => {
-        if (!isInitialized) return; // Don't check for changes until we have original values
-        
-        const firstNameChanged = profile.firstName !== originalProfile.firstName;
-        const lastNameChanged = profile.lastName !== originalProfile.lastName;
-        const displayNameChanged = profile.displayName !== originalProfile.displayName;
-        const avatarChanged = profile.avatar !== originalProfile.avatar;
-        
-        const changesDetected = firstNameChanged || lastNameChanged || displayNameChanged || avatarChanged;
-        setHasChanges(changesDetected);
-    }, [profile, originalProfile, isInitialized]);
+        checkForChanges(profile);
+    }, [profile, checkForChanges]);
 
     const handleChange = event => {
         const { name, value, files } = event.target;
@@ -60,58 +43,18 @@ function ProfileForm({ profile, setProfile }) {
     };
 
     const handleSubmit = async event => {
+        event.preventDefault();
+        setLoading(true);
+
         try {
-            event.preventDefault();
-            setStatus({
-                success: false,
-                message: ''
-            });
-            setLoading(true);
-
-            // Get token from localStorage
-            const token = localStorage.getItem('authToken');
-
-            if (!token) {
-                throw new Error('Authentication token not found');
-            }
-            
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_BASE_URL}/profiles`,
-                profile,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-            
-            setStatus({
-                success: true,
-                message: 'Profile updated successfully'
-            });
-            
-            // Update original profile after successful save
-            setOriginalProfile({
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                displayName: profile.displayName,
-                avatar: profile.avatar
-            });
-            
+            await profileService.updateProfile(profile);
+            setSuccessMessage('Profile updated successfully');
+            updateOriginalData(profile);
         } catch (error) {
             console.error('Error updating profile:', error);
-            setStatus({
-                success: false,
-                message: error.response?.data?.message || error.message || 'An error occurred'
-            });
+            setErrorMessage(error);
         } finally {
             setLoading(false);
-            setTimeout(() => {
-                setStatus({
-                    success: false,
-                    message: ''
-                });
-            }, 5000);
         }
     };
 

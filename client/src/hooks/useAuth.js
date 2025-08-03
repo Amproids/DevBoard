@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
 
+import {
+    getAuthToken,
+    setAuthToken,
+    removeAuthToken,
+    extractTokenFromUrl
+} from '../utils/tokenUtils';
+
 function useAuth() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         // Handle OAuth token from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
+        const urlToken = extractTokenFromUrl();
         
-        if (token) {
-            localStorage.setItem('authToken', token);
-            window.history.replaceState({}, document.title, window.location.pathname);
+        if (urlToken) {
             setIsAuthenticated(true);
         } else {
             // Check for existing token
-            const existingToken = localStorage.getItem('authToken');
+            const existingToken = getAuthToken();
             if (existingToken) {
                 setIsAuthenticated(true);
             }
@@ -23,12 +27,15 @@ function useAuth() {
         setIsLoading(false);
     }, []);
 
-    const login = () => {
+    const login = (token) => {
+        if (token) {
+            setAuthToken(token);
+        }
         setIsAuthenticated(true);
     };
 
     const logout = () => {
-        localStorage.removeItem('authToken');
+        removeAuthToken();
         setIsAuthenticated(false);
     };
 

@@ -1,43 +1,36 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+// components/CredentialForm.jsx
+import React, { useEffect } from 'react';
+import { credentialsService } from '../../services/credentialsService';
+import { useFormStatus } from '../../hooks/useFormStatus';
+import { useFormChanges } from '../../hooks/useFormChanges';
 
 function CredentialForm({ credentials, setCredentials }) {
-    const [status, setStatus] = useState({
-        success: false,
-        message: ''
-    });
-    const [loading, setLoading] = useState(false);
-    const [originalCredentials, setOriginalCredentials] = useState({
-        email: '',
-        phoneNumber: ''
-    });
-    const [hasChanges, setHasChanges] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    
+    const { 
+        hasChanges: hasFieldChanges, 
+        checkForChanges, 
+        updateOriginalData 
+    } = useFormChanges(
+        {
+            email: credentials.email || '',
+            phoneNumber: credentials.phoneNumber || ''
+        },
+        [credentials.email, credentials.phoneNumber]
+    );
 
-    // Store original credentials when they're loaded
-    useEffect(() => {
-        // Only set original credentials once when data is first loaded
-        if (!isInitialized && (credentials.email || credentials.phoneNumber)) {
-            setOriginalCredentials({
-                email: credentials.email || '',
-                phoneNumber: credentials.phoneNumber || ''
-            });
-            setIsInitialized(true);
-        }
-    }, [credentials.email, credentials.phoneNumber, isInitialized]);
+    // Check for changes including password fields
+    const hasPasswordChanges = (credentials.password && credentials.password.length > 0) || 
+                              (credentials.confirmPassword && credentials.confirmPassword.length > 0);
+    const hasChanges = hasFieldChanges || hasPasswordChanges;
 
     // Check for changes whenever credentials change
     useEffect(() => {
-        if (!isInitialized) return; // Don't check for changes until we have original values
-        
-        const emailChanged = credentials.email !== originalCredentials.email;
-        const phoneChanged = credentials.phoneNumber !== originalCredentials.phoneNumber;
-        const hasPassword = credentials.password && credentials.password.length > 0;
-        const hasConfirmPassword = credentials.confirmPassword && credentials.confirmPassword.length > 0;
-        
-        const changesDetected = emailChanged || phoneChanged || hasPassword || hasConfirmPassword;
-        setHasChanges(changesDetected);
-    }, [credentials, originalCredentials, isInitialized]);
+        checkForChanges({
+            email: credentials.email,
+            phoneNumber: credentials.phoneNumber
+        });
+    }, [credentials.email, credentials.phoneNumber, checkForChanges]);
 
     const handleChange = event => {
         const { name, value } = event.target;
@@ -48,43 +41,20 @@ function CredentialForm({ credentials, setCredentials }) {
     };
 
     const handleSubmit = async event => {
+        event.preventDefault();
+        setLoading(true);
+        
         try {
-            event.preventDefault();
-            setStatus({
-                success: false,
-                message: ''
-            });
-            setLoading(true);
+            // Validate credentials
+            credentialsService.validateCredentials(credentials);
             
-            if (credentials.password !== credentials.confirmPassword) {
-                throw {
-                    response: { data: { message: 'Passwords do not match' } }
-                };
-            }
+            // Update credentials
+            await credentialsService.updateCredentials(credentials);
             
-            // Get token from localStorage instead of hardcoding
-            const token = localStorage.getItem('authToken');
-            
-            if (!token) {
-                throw new Error('Authentication token not found');
-            }
-            
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_BASE_URL}/credentials`,
-                credentials,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-            setStatus({
-                success: true,
-                message: 'Credentials updated successfully'
-            });
+            setSuccessMessage('Credentials updated successfully');
             
             // Update original credentials after successful save
-            setOriginalCredentials({
+            updateOriginalData({
                 email: credentials.email,
                 phoneNumber: credentials.phoneNumber
             });
@@ -98,17 +68,8 @@ function CredentialForm({ credentials, setCredentials }) {
             
         } catch (error) {
             console.error('Error updating credentials:', error);
-            setStatus({
-                success: false,
-                message: error.response?.data?.message || error.message || 'An error occurred!'
-            });
+            setErrorMessage(error);
         } finally {
-            setTimeout(() => {
-                setStatus({
-                    success: false,
-                    message: ''
-                });
-            }, 5000);
             setLoading(false);
         }
     };
