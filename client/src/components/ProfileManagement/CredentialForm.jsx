@@ -1,12 +1,36 @@
-import axios from 'axios';
-import { useState } from 'react';
+// components/CredentialForm.jsx
+import React, { useEffect } from 'react';
+import { credentialsService } from '../../services/credentialsService';
+import { useFormStatus } from '../../hooks/useFormStatus';
+import { useFormChanges } from '../../hooks/useFormChanges';
 
 function CredentialForm({ credentials, setCredentials }) {
-    const [status, setStatus] = useState({
-        success: false,
-        message: ''
-    });
-    const [loading, setLoading] = useState(false);
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    
+    const { 
+        hasChanges: hasFieldChanges, 
+        checkForChanges, 
+        updateOriginalData 
+    } = useFormChanges(
+        {
+            email: credentials.email || '',
+            phoneNumber: credentials.phoneNumber || ''
+        },
+        [credentials.email, credentials.phoneNumber]
+    );
+
+    // Check for changes including password fields
+    const hasPasswordChanges = (credentials.password && credentials.password.length > 0) || 
+                              (credentials.confirmPassword && credentials.confirmPassword.length > 0);
+    const hasChanges = hasFieldChanges || hasPasswordChanges;
+
+    // Check for changes whenever credentials change
+    useEffect(() => {
+        checkForChanges({
+            email: credentials.email,
+            phoneNumber: credentials.phoneNumber
+        });
+    }, [credentials.email, credentials.phoneNumber, checkForChanges]);
 
     const handleChange = event => {
         const { name, value } = event.target;
@@ -17,44 +41,35 @@ function CredentialForm({ credentials, setCredentials }) {
     };
 
     const handleSubmit = async event => {
+        event.preventDefault();
+        setLoading(true);
+        
         try {
-            event.preventDefault();
-            setStatus({
-                success: false,
-                message: ''
+            // Validate credentials
+            credentialsService.validateCredentials(credentials);
+            
+            // Update credentials
+            await credentialsService.updateCredentials(credentials);
+            
+            setSuccessMessage('Credentials updated successfully');
+            
+            // Update original credentials after successful save
+            updateOriginalData({
+                email: credentials.email,
+                phoneNumber: credentials.phoneNumber
             });
-            setLoading(true);
-            if (credentials.password !== credentials.confirmPassword) {
-                throw {
-                    response: { data: { message: 'Passwords do not match' } }
-                };
-            }
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_BASE_URL}/credentials`,
-                credentials,
-                {
-                    headers: {
-                        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`
-                    }
-                }
-            );
-            setStatus({
-                success: true,
-                message: 'Credentials updated successfully'
-            });
+            
+            // Clear passwords after successful update
+            setCredentials(prev => ({
+                ...prev,
+                password: '',
+                confirmPassword: ''
+            }));
+            
         } catch (error) {
-            console.error('Error updating profile:', error);
-            setStatus({
-                success: false,
-                message: error.response?.data?.message || 'An error occurred!'
-            });
+            console.error('Error updating credentials:', error);
+            setErrorMessage(error);
         } finally {
-            setTimeout(() => {
-                setStatus({
-                    success: false,
-                    message: ''
-                });
-            }, 5000);
             setLoading(false);
         }
     };
@@ -72,9 +87,9 @@ function CredentialForm({ credentials, setCredentials }) {
                     <input
                         type="email"
                         id="email"
-                        className="border border-gray-300  rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="email"
-                        value={credentials.email}
+                        value={credentials.email || ''}
                         onChange={handleChange}
                         placeholder="Enter your email"
                         required
@@ -87,7 +102,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="phoneNumber"
                         name="phoneNumber"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={credentials.phoneNumber}
+                        value={credentials.phoneNumber || ''}
                         onChange={handleChange}
                         placeholder="Enter your phone number"
                     />
@@ -101,7 +116,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="password"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="password"
-                        value={credentials.password}
+                        value={credentials.password || ''}
                         onChange={handleChange}
                         placeholder="Enter your password"
                         required
@@ -118,7 +133,7 @@ function CredentialForm({ credentials, setCredentials }) {
                         id="confirmPassword"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="confirmPassword"
-                        value={credentials.confirmPassword}
+                        value={credentials.confirmPassword || ''}
                         onChange={handleChange}
                         placeholder="Confirm your password"
                         required
@@ -126,8 +141,13 @@ function CredentialForm({ credentials, setCredentials }) {
                     />
                 </div>
                 <button
-                    className="bg-background cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-background-hover focus:outline-none focus:ring-0"
+                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                        hasChanges && !loading
+                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                     type="submit"
+                    disabled={!hasChanges || loading}
                 >
                     {loading ? 'Updating...' : 'Update Credentials'}
                 </button>
@@ -135,7 +155,7 @@ function CredentialForm({ credentials, setCredentials }) {
                     {status.success && (
                         <p className="text-green-500">{status.message}</p>
                     )}
-                    {!status.success && (
+                    {!status.success && status.message && (
                         <p className="text-red-500">{status.message}</p>
                     )}
                 </div>

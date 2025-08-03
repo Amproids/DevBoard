@@ -1,56 +1,60 @@
-import axios from 'axios';
-import { useState } from 'react';
+// components/ProfileForm.jsx
+import React, { useEffect } from 'react';
+import { profileService } from '../../services/profileService';
+import { useFormStatus } from '../../hooks/useFormStatus';
+import { useFormChanges } from '../../hooks/useFormChanges';
 
 function ProfileForm({ profile, setProfile }) {
-    const [status, setStatus] = useState({
-        success: false,
-        message: ''
-    });
-    const [loading, setLoading] = useState(false);
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    
+    const { 
+        hasChanges, 
+        checkForChanges, 
+        updateOriginalData 
+    } = useFormChanges(
+        {
+            firstName: profile.firstName || '',
+            lastName: profile.lastName || '',
+            displayName: profile.displayName || '',
+            avatar: profile.avatar || null
+        },
+        [profile.firstName, profile.lastName, profile.displayName, profile.avatar]
+    );
+
+    // Check for changes whenever profile changes
+    useEffect(() => {
+        checkForChanges(profile);
+    }, [profile, checkForChanges]);
 
     const handleChange = event => {
-        const { name, value } = event.target;
-        setProfile(prevProfile => ({
-            ...prevProfile,
-            [name]: value
-        }));
+        const { name, value, files } = event.target;
+        
+        if (name === 'avatar' && files && files[0]) {
+            setProfile(prevProfile => ({
+                ...prevProfile,
+                [name]: files[0]
+            }));
+        } else {
+            setProfile(prevProfile => ({
+                ...prevProfile,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async event => {
+        event.preventDefault();
+        setLoading(true);
+
         try {
-            event.preventDefault();
-            setStatus({
-                success: false,
-                message: ''
-            });
-            setLoading(true);
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_BASE_URL}/profiles`,
-                profile,
-                {
-                    headers: {
-                        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`
-                    }
-                }
-            );
-            setStatus({
-                success: true,
-                message: 'Profile updated successfully'
-            });
+            await profileService.updateProfile(profile);
+            setSuccessMessage('Profile updated successfully');
+            updateOriginalData(profile);
         } catch (error) {
             console.error('Error updating profile:', error);
-            setStatus({
-                success: false,
-                message: error.response?.data?.message || 'An error occurred'
-            });
+            setErrorMessage(error);
         } finally {
             setLoading(false);
-            setTimeout(() => {
-                setStatus({
-                    success: false,
-                    message: ''
-                });
-            }, 5000);
         }
     };
 
@@ -68,8 +72,8 @@ function ProfileForm({ profile, setProfile }) {
                         type="text"
                         id="firstName"
                         name="firstName"
-                        className="border border-gray-300   rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.firstName}
+                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        value={profile.firstName || ''}
                         onChange={handleChange}
                         placeholder="Enter your first name"
                         required
@@ -84,7 +88,7 @@ function ProfileForm({ profile, setProfile }) {
                         id="lastName"
                         name="lastName"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.lastName}
+                        value={profile.lastName || ''}
                         onChange={handleChange}
                         placeholder="Enter your last name"
                         required
@@ -92,13 +96,13 @@ function ProfileForm({ profile, setProfile }) {
                 </div>
 
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="lastName">Display Name</label>
+                    <label htmlFor="displayName">Display Name</label>
                     <input
                         type="text"
                         id="displayName"
                         name="displayName"
                         className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.displayName}
+                        value={profile.displayName || ''}
                         onChange={handleChange}
                         placeholder="Enter your display name"
                     />
@@ -116,8 +120,13 @@ function ProfileForm({ profile, setProfile }) {
                     />
                 </div>
                 <button
+                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                        hasChanges && !loading
+                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                     type="submit"
-                    className="bg-background cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-background-hover focus:outline-none focus:ring-0"
+                    disabled={!hasChanges || loading}
                 >
                     {loading ? 'Updating...' : 'Update Profile'}
                 </button>
@@ -125,7 +134,7 @@ function ProfileForm({ profile, setProfile }) {
                     {status.success && (
                         <p className="text-green-500">{status.message}</p>
                     )}
-                    {!status.success && (
+                    {!status.success && status.message && (
                         <p className="text-red-500">{status.message}</p>
                     )}
                 </div>

@@ -21,17 +21,25 @@ function Profile() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
-    // TO UPDATE: Fetch profile data from the server
+    // Fetch profile data from the server
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
                 setError(false);
+                
+                // Get token from localStorage
+                const token = localStorage.getItem('authToken');
+                
+                if (!token) {
+                    throw new Error('Authentication token not found');
+                }
+
                 const response = await axios.get(
                     `${import.meta.env.VITE_API_BASE_URL}/profiles`,
                     {
                         headers: {
-                            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2NmOTllZDhjMTRiMmQ1ZTk3MWNiNyIsImVtYWlsIjoiZXhhbXBsaUBleGFtcGxlLmNvbSIsImlhdCI6MTc1MzAzOTA3OSwiZXhwIjoxNzUzMDQyNjc5fQ.EOnMrWp3Gbr5BnQQUe2Nivrh1lUxujkximUujDTx47o`
+                            Authorization: `Bearer ${token}`
                         }
                     }
                 );
@@ -82,7 +90,7 @@ function Profile() {
             )}
             {loading && (
                 <div className="flex justify-center items-center h-screen">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-bacground"></div>
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-background"></div>
                 </div>
             )}
             {error && (
