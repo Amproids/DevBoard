@@ -44,13 +44,14 @@ function Register() {
 
             // Make API call to register
             const response = await axios.post(
-                `${import.meta.env.VITE_API_BASE_URL}/register`,
+                `${import.meta.env.VITE_API_BASE_URL}/users/register`,
                 {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
                     email: formData.email,
                     phoneNumber: formData.phoneNumber,
-                    password: formData.password
+                    password: formData.password,
+                    confirmPassword: formData.confirmPassword
                 }
             );
 
