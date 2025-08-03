@@ -30,7 +30,7 @@ function Login({ setIsAuthenticated}) {
             });
 
             // Handle successful login
-            const { token, user } = response.data;
+            const { token, user } = response.data.data;
             
             // Store token
             localStorage.setItem('authToken', token);
