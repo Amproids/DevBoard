@@ -58,11 +58,6 @@ function Dashboard() {
         setBoards(prev => [newBoard, ...prev]);
     };
 
-    const handleBoardClick = (board) => {
-        // TODO: Navigate to board detail view
-        console.log('Board clicked:', board.name);
-    };
-
     const handleBoardUpdated = (updatedBoard) => {
         // Update the board in the list
         setBoards(prev => prev.map(board => 
@@ -141,7 +136,6 @@ function Dashboard() {
                                 <BoardPreviewCard 
                                     key={board._id} 
                                     board={board} 
-                                    onClick={handleBoardClick}
                                     onBoardUpdated={handleBoardUpdated}
                                 />
                             ))

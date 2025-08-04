@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { boardService } from '../../services/boardService';
 
-function BoardPreviewCard({ board, onClick, onBoardUpdated }) {
+function BoardPreviewCard({ board, onBoardUpdated }) {
+    const navigate = useNavigate();
     const [isUpdating, setIsUpdating] = useState(false);
     const [isFavorite, setIsFavorite] = useState(board.isFavorite || false);
 
@@ -51,10 +53,14 @@ function BoardPreviewCard({ board, onClick, onBoardUpdated }) {
         }
     };
 
+    const handleCardClick = () => {
+        navigate(`/board/${board._id}`);
+    };
+
     return (
         <div 
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 relative"
-            onClick={() => onClick && onClick(board)}
+            onClick={handleCardClick}
         >
             {/* Favorite Button */}
             <button

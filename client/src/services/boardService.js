@@ -30,6 +30,17 @@ export const boardService = {
         }
     },
 
+    // Get single board by ID with populated columns/tasks
+    async getBoardById(boardId) {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/boards/${boardId}`, getAuthHeaders());
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching board:', error);
+            throw error;
+        }
+    },
+
     // Create a new board
     async createBoard(boardData) {
         try {

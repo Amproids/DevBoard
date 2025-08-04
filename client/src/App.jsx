@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Logout from './pages/Logout';
+import Board from './pages/Board';
 
 function App() {
     const { isAuthenticated, isLoading, login, logout } = useAuth();
@@ -57,6 +58,14 @@ function App() {
                         <Route
                             path="/logout"
                             element={<Logout setIsAuthenticated={logout} />}
+                        />
+                        <Route
+                            path="/board/:id"
+                            element={
+                                <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                    <Board />
+                                </ProtectedRoute>
+                            }
                         />
                     </Routes>
                 </main>
