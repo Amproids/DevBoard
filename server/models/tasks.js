@@ -43,6 +43,11 @@ module.exports = mongoose => {
                     ref: 'comments'
                 }
             ],
+            createdBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'users',
+                required: true
+            },
             attachments: [
                 {
                     type: mongoose.Schema.Types.ObjectId,

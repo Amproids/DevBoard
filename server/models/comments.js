@@ -1,4 +1,4 @@
-module.exports = mongoose => {
+  module.exports = mongoose => {
     const commentSchema = mongoose.Schema(
         {
             content: {
@@ -30,3 +30,4 @@ module.exports = mongoose => {
     const Comments = mongoose.model('comments', commentSchema);
     return Comments;
 };
+ 

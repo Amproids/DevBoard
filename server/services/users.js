@@ -57,11 +57,7 @@ const registerUsersService = async userData => {
     }
 };
 
-const updateUsersProfileService = async (
-    userId,
-    updateData,
-    currentPassword
-) => {
+const updateUsersProfileService = async (userId, updateData) => {
     try {
         const allowedUpdates = [
             'firstName',
@@ -95,20 +91,24 @@ const updateUsersProfileService = async (
         }
 
         if (updateData.password) {
-            if (!updateData.currentPassword) {
+            if (user.password && !updateData.currentPassword) {
                 throw createError(400, 'Current password is required');
             }
 
-            const isMatch = await user.comparePassword(
-                updateData.currentPassword
-            );
-            if (!isMatch) {
-                throw createError(401, 'Current password is incorrect');
+            if (user.password) {
+                const isMatch = await user.comparePassword(
+                    updateData.currentPassword
+                );
+                if (!isMatch) {
+                    throw createError(401, 'Current password is incorrect');
+                }
             }
         }
 
         updates.forEach(update => {
-            user[update] = updateData[update];
+            if (update !== 'currentPassword') {
+                user[update] = updateData[update];
+            }
         });
 
         const updatedUser = await user.save();

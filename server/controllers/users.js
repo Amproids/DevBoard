@@ -1,6 +1,7 @@
 const createError = require('http-errors');
 const userService = require('../services/users.js');
 const userValidator = require('../validators/users.js');
+const Users = require('../models').users;
 
 const getUsersController = async (req, res, next) => {
     try {
@@ -58,15 +59,23 @@ const registerUsersController = async (req, res, next) => {
 
 const updateUsersProfileController = async (req, res, next) => {
     try {
-        const { error } = userValidator.validateUpdateInput(req.body);
+        const userId = req.params.id;
+
+        const user = await Users.findById(userId).select('+password');
+        if (!user) {
+            throw createError(404, 'User not found');
+        }
+
+        const { error } = userValidator.validateUpdateInput(
+            req.body,
+            !!user.password
+        );
         if (error) {
             const errorMessages = error.details
                 .map(detail => detail.message)
                 .join('; ');
             throw createError(400, `Validation failed: ${errorMessages}`);
         }
-
-        const userId = req.params.id;
 
         const updatedUser = await userService.updateUsersProfileService(
             userId,
