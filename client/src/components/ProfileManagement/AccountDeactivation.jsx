@@ -1,11 +1,13 @@
 // components/AccountDeactivation.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 
-function AccountDeactivation({ onDeactivate }) {
+function AccountDeactivation() {
     const [confirmation, setConfirmation] = useState('');
-    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { status, loading, setLoading, setErrorMessage } = useFormStatus();
+    const navigate = useNavigate();
 
     const handleChange = event => {
         const { value } = event.target;
@@ -22,18 +24,11 @@ function AccountDeactivation({ onDeactivate }) {
                 throw new Error('Please type "DEACTIVATE" exactly to confirm');
             }
 
-            // Call the deactivation service
+            // Call the deactivation service (this already calls logout internally)
             await authService.deactivateAccount();
 
-            // Call the onDeactivate callback if provided
-            if (onDeactivate) {
-                await onDeactivate();
-            }
-
-            setSuccessMessage('Account deactivation initiated successfully');
-            
-            // Clear the confirmation field
-            setConfirmation('');
+            // Navigate to logout page (which will handle the auth state update)
+            navigate('/logout');
 
         } catch (error) {
             console.error('Error deactivating account:', error);
@@ -83,14 +78,11 @@ function AccountDeactivation({ onDeactivate }) {
                 >
                     {loading ? 'Deactivating...' : 'Deactivate Account'}
                 </button>
-                <div className="mt-4">
-                    {status.success && (
-                        <p className="text-green-500">{status.message}</p>
-                    )}
-                    {!status.success && status.message && (
+                {!status.success && status.message && (
+                    <div className="mt-4">
                         <p className="text-red-500">{status.message}</p>
-                    )}
-                </div>
+                    </div>
+                )}
             </form>
         </div>
     );

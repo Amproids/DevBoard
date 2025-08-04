@@ -22,10 +22,23 @@ export const authService = {
      * Deactivate user account
      * @returns {Promise} API response
      */
-    async deactivateAccount(userId) {
-        return axios.delete(`${API_BASE_URL}/users/${userId}`, {
-            headers: this.getAuthHeaders()
-        });
+    async deactivateAccount() {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/profiles`, {
+                headers: this.getAuthHeaders()
+            }); 
+            const userId = response.data.data._id;
+            
+            await axios.delete(`${API_BASE_URL}/users/${userId}`, {
+                headers: this.getAuthHeaders()
+            });
+
+            this.logout();
+            return { success: true };
+        } catch (error) {
+           console.error('Error deactivating account:', error);
+           throw error;
+        }
     },
 
     /**
