@@ -146,6 +146,53 @@ router.get('/', ensureAuth, boardController.getBoardsController);
 
 /**
  * @swagger
+ * /boards/{id}:
+ *   get:
+ *     tags: [Boards]
+ *     summary: Get a board by ID
+ *     description: |
+ *       Returns a specific board with populated columns and tasks.
+ *       User must be owner or member of the board.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *         description: Board ID
+ *         example: "507f1f77bcf86cd799439011"
+ *     responses:
+ *       200:
+ *         description: Board retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/FullBoard'
+ *                 message:
+ *                   type: string
+ *                   example: "Board retrieved successfully"
+ *       400:
+ *         description: Invalid board ID format
+ *       403:
+ *         description: No permission to view this board
+ *       404:
+ *         description: Board not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id', ensureAuth, boardController.getBoardController);
+
+/**
+ * @swagger
  * /boards:
  *   post:
  *     tags: [Boards]

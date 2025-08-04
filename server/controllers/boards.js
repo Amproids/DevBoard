@@ -146,9 +146,41 @@ const getBoardsController = async (req, res, next) => {
     }
 };
 
+const getBoardController = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const boardId = req.params.id;
+
+        if (!userId) {
+            throw createError(401, 'Authentication required');
+        }
+
+        if (!boardId) {
+            throw createError(400, 'Board ID is required');
+        }
+
+        const board = await boardService.getBoardService(boardId, userId);
+
+        res.status(200).json({
+            success: true,
+            data: board,
+            message: 'Board retrieved successfully'
+        });
+    } catch (err) {
+        console.error('Error in getBoardController:', err.message);
+        
+        if (err.status === 400 || err.status === 403 || err.status === 404) {
+            next(err);
+        } else {
+            next(createError(500, 'Error retrieving board'));
+        }
+    }
+};
+
 module.exports = {
     createBoardController,
     updateBoardController,
     deleteBoardController,
-    getBoardsController
+    getBoardsController,
+    getBoardController
 };

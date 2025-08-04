@@ -270,9 +270,58 @@ const getBoardsService = async (userId, filterOptions = {}) => {
     }
 };
 
+const getBoardService = async (boardId, userId) => {
+    try {
+        if (!boardId) {
+            throw createError(400, 'Board ID is required');
+        }
+
+        // Find board where user is either owner or member
+        const board = await Boards.findOne({
+            _id: boardId,
+            $or: [{ owner: userId }, { 'members.user': userId }]
+        })
+            .populate({
+                path: 'owner',
+                select: 'firstName lastName email avatar'
+            })
+            .populate({
+                path: 'members.user',
+                select: 'firstName lastName email avatar'
+            })
+            .populate({
+                path: 'columns',
+                select: 'name order isLocked tasks',
+                populate: {
+                    path: 'tasks',
+                    select: 'title description dueDate priority assignees',
+                    populate: {
+                        path: 'assignees',
+                        select: 'firstName lastName avatar email'
+                    }
+                }
+            });
+
+        if (!board) {
+            throw createError(404, 'Board not found or you dont have permission to view it');
+        }
+
+        return board;
+    } catch (err) {
+        console.error('Error in boards.service.js -> getBoard:', err.message);
+
+        if (err.name === 'CastError') {
+            throw createError(400, 'Invalid board ID format');
+        }
+        
+        throw err;
+    }
+};
+
 module.exports = {
     createBoardService,
     updateBoardService,
     deleteBoardService,
-    getBoardsService
+    getBoardsService,
+    getBoardService
 };
