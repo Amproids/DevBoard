@@ -8,7 +8,7 @@ const validateCreateTaskInput = data => {
             'string.max': 'Task title cannot exceed 100 characters',
             'any.required': 'Task title is required'
         }),
-        description: Joi.string().max(500).optional().messages({
+        description: Joi.string().max(500).allow('').messages({
             'string.max': 'Description cannot exceed 500 characters'
         }),
         dueDate: Joi.date().iso().greater('now').optional().messages({

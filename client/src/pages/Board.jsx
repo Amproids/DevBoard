@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { boardService } from '../services/boardService';
+import AddColumnModal from '../components/Column/AddColumnModal.jsx';
+import Column from '../components/Column/Column.jsx';
 
 function Board() {
     const { id } = useParams();
@@ -9,6 +11,7 @@ function Board() {
     const [board, setBoard] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
+    const [showAddColumnModal, setShowAddColumnModal] = useState(false);
 
     // Fetch board data
     const fetchBoard = async () => {
@@ -39,6 +42,36 @@ function Board() {
 
     const handleBoardUpdate = (updatedBoard) => {
         setBoard(updatedBoard);
+    };
+
+    const handleAddColumn = () => {
+        setShowAddColumnModal(true);
+    };
+
+    const handleColumnCreated = (newColumn) => {
+        // Add the new column to the board
+        setBoard(prev => ({
+            ...prev,
+            columns: [...(prev.columns || []), newColumn]
+        }));
+    };
+
+    const handleColumnUpdated = (updatedColumn) => {
+        // Update the column in the board
+        setBoard(prev => ({
+            ...prev,
+            columns: prev.columns.map(col => 
+                col._id === updatedColumn._id ? updatedColumn : col
+            )
+        }));
+    };
+
+    const handleColumnDeleted = (deletedColumnId) => {
+        // Remove the column from the board
+        setBoard(prev => ({
+            ...prev,
+            columns: prev.columns.filter(col => col._id !== deletedColumnId)
+        }));
     };
 
     const handleBackToDashboard = () => {
@@ -172,7 +205,10 @@ function Board() {
                                         </svg>
                                         Settings
                                     </button>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                                    <button 
+                                        onClick={handleAddColumn}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                                    >
                                         <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
@@ -185,37 +221,17 @@ function Board() {
 
                     {/* Board Content Area */}
                     <div className="container mx-auto px-4 py-6">
-                        {/* Columns Container - This will be replaced with actual Column components */}
+                        {/* Columns Container */}
                         <div className="flex gap-6 overflow-x-auto min-h-96">
                             {board.columns && board.columns.length > 0 ? (
-                                board.columns.map((column, index) => (
-                                    <div key={column._id || index} className="flex-shrink-0 w-80">
-                                        {/* Placeholder Column Card */}
-                                        <div className="bg-white rounded-lg shadow-sm border p-4">
-                                            <h3 className="font-semibold text-gray-900 mb-3">
-                                                {column.name || `Column ${index + 1}`}
-                                            </h3>
-                                            <div className="text-sm text-gray-500 mb-4">
-                                                {column.tasks ? `${column.tasks.length} tasks` : '0 tasks'}
-                                            </div>
-                                            {/* Placeholder for tasks */}
-                                            <div className="space-y-2">
-                                                {column.tasks && column.tasks.slice(0, 3).map((task, taskIndex) => (
-                                                    <div key={task._id || taskIndex} className="bg-gray-50 p-3 rounded-md">
-                                                        <div className="font-medium text-sm">{task.title || 'Untitled Task'}</div>
-                                                        {task.description && (
-                                                            <div className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                                {column.tasks && column.tasks.length > 3 && (
-                                                    <div className="text-center text-sm text-gray-500 py-2">
-                                                        +{column.tasks.length - 3} more tasks
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                                board.columns.map((column) => (
+                                    <Column 
+                                        key={column._id} 
+                                        column={column}
+                                        boardId={id}
+                                        onColumnUpdated={handleColumnUpdated}
+                                        onColumnDeleted={handleColumnDeleted}
+                                    />
                                 ))
                             ) : (
                                 /* Empty State for Columns */
@@ -238,6 +254,14 @@ function Board() {
                     </div>
                 </>
             )}
+
+            {/* Add Column Modal */}
+            <AddColumnModal 
+                isOpen={showAddColumnModal}
+                onClose={() => setShowAddColumnModal(false)}
+                boardId={id}
+                onColumnCreated={handleColumnCreated}
+            />
         </div>
     );
 }
