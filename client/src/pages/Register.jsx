@@ -1,9 +1,14 @@
-import axios from 'axios';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useFormStatus } from '../hooks/useFormStatus';
+import { useFormChanges } from '../hooks/useFormChanges';
+import { authService } from '../services/authService';
+import { userService } from '../services/userService'; // You'll need to create this
 
 function Register() {
     const navigate = useNavigate();
+    
+    // Form data state
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -12,53 +17,49 @@ function Register() {
         password: '',
         confirmPassword: ''
     });
-    const [status, setStatus] = useState({
-        success: false,
-        message: ''
-    });
-    const [loading, setLoading] = useState(false);
+
+    // Use custom hooks
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { hasChanges, checkForChanges } = useFormChanges(formData);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setFormData(prevData => ({
-            ...prevData,
+        const updatedData = {
+            ...formData,
             [name]: value
-        }));
+        };
+        setFormData(updatedData);
+        checkForChanges(updatedData);
+    };
+
+    const validateForm = () => {
+        if (formData.password !== formData.confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+        if (formData.password.length < 6) {
+            throw new Error('Password must be at least 6 characters long');
+        }
+        if (!formData.email.includes('@')) {
+            throw new Error('Please enter a valid email address');
+        }
+        if (!formData.firstName.trim() || !formData.lastName.trim()) {
+            throw new Error('First name and last name are required');
+        }
     };
 
     const handleSubmit = async (event) => {
+        event.preventDefault();
+        
         try {
-            event.preventDefault();
-            setStatus({
-                success: false,
-                message: ''
-            });
             setLoading(true);
+            
+            // Validate form data
+            validateForm();
 
-            // Validate passwords match
-            if (formData.password !== formData.confirmPassword) {
-                throw {
-                    response: { data: { message: 'Passwords do not match' } }
-                };
-            }
+            // Call user service to register
+            await userService.register(formData);
 
-            // Make API call to register
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_BASE_URL}/users/register`,
-                {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    phoneNumber: formData.phoneNumber,
-                    password: formData.password,
-                    confirmPassword: formData.confirmPassword
-                }
-            );
-
-            setStatus({
-                success: true,
-                message: 'Account created successfully! Redirecting to login...'
-            });
+            setSuccessMessage('Account created successfully! Redirecting to login...');
 
             // Redirect to login after successful registration
             setTimeout(() => {
@@ -67,40 +68,20 @@ function Register() {
 
         } catch (error) {
             console.error('Error creating account:', error);
-            setStatus({
-                success: false,
-                message: error.response?.data?.message || 'An error occurred while creating your account'
-            });
+            setErrorMessage(error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGoogleLogin = async () => {
+    const handleOAuthLogin = async (provider) => {
         try {
-            // Redirect to Google OAuth endpoint
-            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
-            console.log('Redirecting to Google:', url);
-            window.location.href = url;
-        } catch (err) {
-            setStatus({
-                success: false,
-                message: 'Google signup failed. Please try again.'
-            });
-        }
-    };
-
-    const handleGitHubLogin = async () => {
-        try {
-            // Redirect to GitHub OAuth endpoint
-            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/github`;
-            console.log('Redirecting to GitHub:', url);
-            window.location.href = url;
-        } catch (err) {
-            setStatus({
-                success: false,
-                message: 'GitHub signup failed. Please try again.'
-            });
+            setLoading(true);
+            await authService.redirectToOAuth(provider);
+        } catch (error) {
+            setErrorMessage(new Error(`${provider} signup failed. Please try again.`));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -127,8 +108,9 @@ function Register() {
                     {/* OAuth Buttons */}
                     <div className="space-y-3 mb-6">
                         <button
-                            onClick={handleGoogleLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                            onClick={() => handleOAuthLogin('google')}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path
@@ -154,8 +136,9 @@ function Register() {
                         </button>
 
                         <button
-                            onClick={handleGitHubLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
+                            onClick={() => handleOAuthLogin('github')}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <svg
                                 className="w-5 h-5"
@@ -201,7 +184,8 @@ function Register() {
                                     value={formData.firstName}
                                     onChange={handleChange}
                                     required
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                                    disabled={loading}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter your first name"
                                 />
                             </div>
@@ -220,7 +204,8 @@ function Register() {
                                     value={formData.lastName}
                                     onChange={handleChange}
                                     required
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                                    disabled={loading}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter your last name"
                                 />
                             </div>
@@ -239,7 +224,8 @@ function Register() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                                    disabled={loading}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter your email address"
                                 />
                             </div>
@@ -257,7 +243,8 @@ function Register() {
                                     name="phoneNumber"
                                     value={formData.phoneNumber}
                                     onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                                    disabled={loading}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter your phone number (optional)"
                                 />
                             </div>
@@ -277,7 +264,8 @@ function Register() {
                                     onChange={handleChange}
                                     required
                                     minLength={6}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                                    disabled={loading}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Enter your password (min. 6 characters)"
                                 />
                             </div>
@@ -297,7 +285,8 @@ function Register() {
                                     onChange={handleChange}
                                     required
                                     minLength={6}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                                    disabled={loading}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="Confirm your password"
                                 />
                             </div>
