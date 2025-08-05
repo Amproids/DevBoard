@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useFormStatus } from '../hooks/useFormStatus';
 import { useFormChanges } from '../hooks/useFormChanges';
 import { authService } from '../services/authService';
-import { userService } from '../services/userService'; // You'll need to create this
+import { userService } from '../services/userService';
 
 function Register() {
     const navigate = useNavigate();

@@ -1,73 +1,95 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useFormStatus } from '../hooks/useFormStatus';
+import { useFormChanges } from '../hooks/useFormChanges';
+import { useAuth } from '../hooks/useAuth';
+import { authService } from '../services/authService';
+import { setAuthToken } from '../utils/tokenUtils';
 
-function Login({ setIsAuthenticated}) {
+function Login({ setIsAuthenticated }) {
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    
+    // Use the prop if provided, otherwise use the hook
+    const handleLogin = setIsAuthenticated || login;
+    
+    // Form data state
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+
+    // Use custom hooks
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { hasChanges, checkForChanges } = useFormChanges(formData);
 
     const handleInputChange = (e) => {
-        setFormData({
+        const { name, value } = e.target;
+        const updatedData = {
             ...formData,
-            [e.target.name]: e.target.value
-        });
+            [name]: value
+        };
+        setFormData(updatedData);
+        checkForChanges(updatedData);
+    };
+
+    const validateForm = () => {
+        if (!formData.email.trim()) {
+            throw new Error('Email is required');
+        }
+        if (!formData.email.includes('@')) {
+            throw new Error('Please enter a valid email address');
+        }
+        if (!formData.password.trim()) {
+            throw new Error('Password is required');
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError('');
-
+        
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+            setLoading(true);
+            
+            // Validate form data
+            validateForm();
+
+            // Call auth service to login
+            const response = await authService.login({
                 email: formData.email,
                 password: formData.password
             });
 
             // Handle successful login
-            const { token, user } = response.data.data;
+            const { token, user } = response.data;
             
-            // Store token
-            localStorage.setItem('authToken', token);
+            // Store token and update auth state
+            setAuthToken(token);
+            handleLogin(token);
             
-            // Update user state
-            setIsAuthenticated();
+            setSuccessMessage('Login successful! Redirecting...');
             
-            // Redirect to dashboard or home page
-            navigate('/dashboard');
+            // Redirect to dashboard
+            setTimeout(() => {
+                navigate('/dashboard');
+            }, 1000);
             
-        } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please try again.');
+        } catch (error) {
+            console.error('Login error:', error);
+            setErrorMessage(error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGoogleLogin = async () => {
+    const handleOAuthLogin = async (provider) => {
         try {
-            // Redirect to Google OAuth endpoint
-            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
-            console.log('Redirecting to:', url);
-            window.location.href = url;
-        } catch (err) {
-            setError('Google login failed. Please try again.');
-        }
-    };
-
-    // TODO: Connect GitHub OAuth logic here
-    const handleGitHubLogin = () => {
-        try {
-            // Redirect to GitHub OAuth endpoint
-            const url = `${import.meta.env.VITE_API_BASE_URL}/auth/github`;
-            console.log('Redirecting to GitHub:', url);
-            window.location.href = url;
-        } catch (err) {
-            setError('GitHub login failed. Please try again.');
+            setLoading(true);
+            await authService.redirectToOAuth(provider);
+        } catch (error) {
+            setErrorMessage(new Error(`${provider} login failed. Please try again.`));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -93,8 +115,9 @@ function Login({ setIsAuthenticated}) {
                     {/* OAuth Buttons */}
                     <div className="space-y-3 mb-6">
                         <button
-                            onClick={handleGoogleLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+                            onClick={() => handleOAuthLogin('google')}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path
                                     fill="#4285F4"
@@ -119,8 +142,9 @@ function Login({ setIsAuthenticated}) {
                         </button>
 
                         <button
-                            onClick={handleGitHubLogin}
-                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
+                            onClick={() => handleOAuthLogin('github')}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center space-x-3 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <svg
                                 className="w-5 h-5"
@@ -159,7 +183,8 @@ function Login({ setIsAuthenticated}) {
                             value={formData.email}
                             onChange={handleInputChange}
                             placeholder="Email"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
+                            disabled={loading}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             required
                         />
                         <input
@@ -168,7 +193,8 @@ function Login({ setIsAuthenticated}) {
                             value={formData.password}
                             onChange={handleInputChange}
                             placeholder="Password"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
+                            disabled={loading}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             required
                         />
                         <button
@@ -180,18 +206,18 @@ function Login({ setIsAuthenticated}) {
                         </button>
                     </form>
 
-                    {/* Error Display */}
-                    {error && (
-                        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                            {error}
+                    {/* Status Messages */}
+                    {status.message && (
+                        <div className={`mt-4 p-3 rounded-lg ${status.success ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`}>
+                            {status.message}
                         </div>
                     )}
 
                     {/* Additional links */}
                     <div className="mt-6 text-center">
-                        <a href="#" className="text-sm text-gray-600 hover:text-gray-900">
+                        <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
                             Forgot your password?
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>
