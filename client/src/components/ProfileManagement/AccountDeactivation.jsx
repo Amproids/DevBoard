@@ -68,11 +68,10 @@ function AccountDeactivation() {
                     />
                 </div>
                 <button
-                    className={`cursor-pointer py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
-                        isConfirmationValid && !loading
-                            ? 'bg-red-600 text-white hover:bg-red-700'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                    className={`cursor-pointer py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${isConfirmationValid && !loading
+                        ? 'bg-red-50 border-red-200 border text-black hover:bg-red-100'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     type="submit"
                     disabled={!isConfirmationValid || loading}
                 >

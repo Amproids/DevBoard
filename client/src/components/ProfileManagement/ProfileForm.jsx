@@ -6,11 +6,11 @@ import { useFormChanges } from '../../hooks/useFormChanges';
 
 function ProfileForm({ profile, setProfile }) {
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
-    
-    const { 
-        hasChanges, 
-        checkForChanges, 
-        updateOriginalData 
+
+    const {
+        hasChanges,
+        checkForChanges,
+        updateOriginalData
     } = useFormChanges(
         {
             firstName: profile.firstName || '',
@@ -28,7 +28,7 @@ function ProfileForm({ profile, setProfile }) {
 
     const handleChange = event => {
         const { name, value, files } = event.target;
-        
+
         if (name === 'avatar' && files && files[0]) {
             setProfile(prevProfile => ({
                 ...prevProfile,
@@ -120,11 +120,10 @@ function ProfileForm({ profile, setProfile }) {
                     />
                 </div>
                 <button
-                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
-                        hasChanges && !loading
+                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${hasChanges && !loading
                             ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                        }`}
                     type="submit"
                     disabled={!hasChanges || loading}
                 >

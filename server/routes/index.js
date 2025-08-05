@@ -7,5 +7,6 @@ router.use('/boards', require('./boards'));
 router.use('/invitations', require('./invitations'));
 router.use('/columns', require('./columns'));
 router.use('/tasks', require('./tasks'));
+router.use('/password', require('./passwordReset'));
 
 module.exports = router;
