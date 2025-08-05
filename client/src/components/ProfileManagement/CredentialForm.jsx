@@ -1,10 +1,9 @@
-// components/CredentialForm.jsx
 import React, { useEffect } from 'react';
 import { credentialsService } from '../../services/credentialsService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 import { useFormChanges } from '../../hooks/useFormChanges';
 
-function CredentialForm({ credentials, setCredentials }) {
+function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
     
     const { 
@@ -19,12 +18,10 @@ function CredentialForm({ credentials, setCredentials }) {
         [credentials.email, credentials.phoneNumber]
     );
 
-    // Check for changes including password fields
     const hasPasswordChanges = (credentials.password && credentials.password.length > 0) || 
                               (credentials.confirmPassword && credentials.confirmPassword.length > 0);
     const hasChanges = hasFieldChanges || hasPasswordChanges;
 
-    // Check for changes whenever credentials change
     useEffect(() => {
         checkForChanges({
             email: credentials.email,
@@ -45,26 +42,26 @@ function CredentialForm({ credentials, setCredentials }) {
         setLoading(true);
         
         try {
-            // Validate credentials
             credentialsService.validateCredentials(credentials);
-            
-            // Update credentials
             await credentialsService.updateCredentials(credentials);
             
             setSuccessMessage('Credentials updated successfully');
             
-            // Update original credentials after successful save
             updateOriginalData({
                 email: credentials.email,
                 phoneNumber: credentials.phoneNumber
             });
             
-            // Clear passwords after successful update
             setCredentials(prev => ({
                 ...prev,
                 password: '',
                 confirmPassword: ''
             }));
+            
+            // Call parent callback to refresh data if provided
+            if (onCredentialsUpdate) {
+                await onCredentialsUpdate();
+            }
             
         } catch (error) {
             console.error('Error updating credentials:', error);
@@ -76,74 +73,78 @@ function CredentialForm({ credentials, setCredentials }) {
 
     return (
         <div>
-            <h2 className="text-xl font-medium mb-4 mt-4 md:mt-16">
-                Credential Management
-            </h2>
             <form onSubmit={handleSubmit}>
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="email">
-                        Email<span className="p-1 text-red-500">*</span>
+                    <label htmlFor="email" className="mb-2 text-sm font-medium text-gray-700">
+                        Email <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="email"
                         id="email"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="email"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={credentials.email || ''}
                         onChange={handleChange}
                         placeholder="Enter your email"
+                        disabled={loading}
                         required
                     />
                 </div>
+                
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="phoneNumber">Phone Number</label>
+                    <label htmlFor="phoneNumber" className="mb-2 text-sm font-medium text-gray-700">
+                        Phone Number
+                    </label>
                     <input
                         type="tel"
                         id="phoneNumber"
                         name="phoneNumber"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={credentials.phoneNumber || ''}
                         onChange={handleChange}
                         placeholder="Enter your phone number"
+                        disabled={loading}
                     />
                 </div>
+                
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="password">
-                        Password <span className="p-1 text-red-500">*</span>
+                    <label htmlFor="password" className="mb-2 text-sm font-medium text-gray-700">
+                        New Password <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="password"
                         id="password"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="password"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={credentials.password || ''}
                         onChange={handleChange}
-                        placeholder="Enter your password"
-                        required
+                        placeholder="Enter new password (min. 6 characters)"
+                        disabled={loading}
                         minLength={6}
                     />
                 </div>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="confirmPassword">
-                        Confirm Password{' '}
-                        <span className="p-1 text-red-500">*</span>
+                
+                <div className="flex flex-col mb-6">
+                    <label htmlFor="confirmPassword" className="mb-2 text-sm font-medium text-gray-700">
+                        Confirm New Password <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="password"
                         id="confirmPassword"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="confirmPassword"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={credentials.confirmPassword || ''}
                         onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
+                        placeholder="Confirm your new password"
+                        disabled={loading}
                         minLength={6}
                     />
                 </div>
+                
                 <button
-                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasChanges && !loading
-                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                     type="submit"
@@ -151,14 +152,12 @@ function CredentialForm({ credentials, setCredentials }) {
                 >
                     {loading ? 'Updating...' : 'Update Credentials'}
                 </button>
-                <div className="mt-4">
-                    {status.success && (
-                        <p className="text-green-500">{status.message}</p>
-                    )}
-                    {!status.success && status.message && (
-                        <p className="text-red-500">{status.message}</p>
-                    )}
-                </div>
+                
+                {status.message && (
+                    <div className={`mt-4 p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        {status.message}
+                    </div>
+                )}
             </form>
         </div>
     );

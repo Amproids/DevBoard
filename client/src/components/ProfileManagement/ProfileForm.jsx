@@ -1,10 +1,9 @@
-// components/ProfileForm.jsx
 import React, { useEffect } from 'react';
 import { profileService } from '../../services/profileService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 import { useFormChanges } from '../../hooks/useFormChanges';
 
-function ProfileForm({ profile, setProfile }) {
+function ProfileForm({ profile, setProfile, onProfileUpdate }) {
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
     
     const { 
@@ -21,7 +20,6 @@ function ProfileForm({ profile, setProfile }) {
         [profile.firstName, profile.lastName, profile.displayName, profile.avatar]
     );
 
-    // Check for changes whenever profile changes
     useEffect(() => {
         checkForChanges(profile);
     }, [profile, checkForChanges]);
@@ -50,6 +48,11 @@ function ProfileForm({ profile, setProfile }) {
             await profileService.updateProfile(profile);
             setSuccessMessage('Profile updated successfully');
             updateOriginalData(profile);
+            
+            // Call parent callback to refresh data if provided
+            if (onProfileUpdate) {
+                await onProfileUpdate();
+            }
         } catch (error) {
             console.error('Error updating profile:', error);
             setErrorMessage(error);
@@ -60,69 +63,76 @@ function ProfileForm({ profile, setProfile }) {
 
     return (
         <div>
-            <h2 className="text-xl font-medium mb-4 mt-4 md:mt-16">
-                Profile Management
-            </h2>
             <form onSubmit={handleSubmit}>
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="firstName">
-                        First Name <span className="p-1 text-red-500">*</span>
+                    <label htmlFor="firstName" className="mb-2 text-sm font-medium text-gray-700">
+                        First Name <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         id="firstName"
                         name="firstName"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={profile.firstName || ''}
                         onChange={handleChange}
                         placeholder="Enter your first name"
+                        disabled={loading}
                         required
                     />
                 </div>
+                
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="lastName">
-                        Last Name <span className="p-1 text-red-500">*</span>
+                    <label htmlFor="lastName" className="mb-2 text-sm font-medium text-gray-700">
+                        Last Name <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         id="lastName"
                         name="lastName"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={profile.lastName || ''}
                         onChange={handleChange}
                         placeholder="Enter your last name"
+                        disabled={loading}
                         required
                     />
                 </div>
 
                 <div className="flex flex-col mb-4">
-                    <label htmlFor="displayName">Display Name</label>
+                    <label htmlFor="displayName" className="mb-2 text-sm font-medium text-gray-700">
+                        Display Name
+                    </label>
                     <input
                         type="text"
                         id="displayName"
                         name="displayName"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={profile.displayName || ''}
                         onChange={handleChange}
                         placeholder="Enter your display name"
+                        disabled={loading}
                     />
                 </div>
 
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="avatar">Profile Picture</label>
+                <div className="flex flex-col mb-6">
+                    <label htmlFor="avatar" className="mb-2 text-sm font-medium text-gray-700">
+                        Profile Picture
+                    </label>
                     <input
                         type="file"
                         id="avatar"
                         name="avatar"
-                        className="border border-gray-300 rounded-lg p-2 file:rounded-lg file:bg-[#f3f4f6] focus:outline-none focus:ring-0"
+                        className="border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         onChange={handleChange}
                         accept="image/*"
+                        disabled={loading}
                     />
                 </div>
+                
                 <button
-                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasChanges && !loading
-                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                     type="submit"
@@ -130,14 +140,12 @@ function ProfileForm({ profile, setProfile }) {
                 >
                     {loading ? 'Updating...' : 'Update Profile'}
                 </button>
-                <div className="mt-4">
-                    {status.success && (
-                        <p className="text-green-500">{status.message}</p>
-                    )}
-                    {!status.success && status.message && (
-                        <p className="text-red-500">{status.message}</p>
-                    )}
-                </div>
+                
+                {status.message && (
+                    <div className={`mt-4 p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        {status.message}
+                    </div>
+                )}
             </form>
         </div>
     );
