@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileForm from '../components/ProfileManagement/ProfileForm';
 import CredentialForm from '../components/ProfileManagement/CredentialForm';
+import LinkedAccounts from '../components/ProfileManagement/linkedAccounts.jsx';
 import AccountDeactivation from '../components/ProfileManagement/AccountDeactivation';
 import { useApi } from '../hooks/useApi';
 import { useFormStatus } from '../hooks/useFormStatus';
@@ -39,6 +40,13 @@ function Profile() {
         const loadProfile = async () => {
             try {
                 await fetchProfile();
+                
+                // Check if user just returned from OAuth linking
+                const returnAfterLink = localStorage.getItem('returnAfterLink');
+                if (returnAfterLink === window.location.pathname) {
+                    localStorage.removeItem('returnAfterLink');
+                    // Could show a success message here if desired
+                }
             } catch (error) {
                 console.error('Error fetching profile:', error);
                 setErrorMessage(error);
@@ -129,37 +137,55 @@ function Profile() {
                         <p className="text-gray-600">Manage your account information and preferences</p>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-center gap-20 mx-auto p-4 md:max-w-5xl">
-                        {/* Profile Form */}
-                        <div className="w-full">
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
-                                <ProfileForm
-                                    profile={profile}
-                                    setProfile={setProfile}
-                                    onProfileUpdate={handleProfileUpdate}
-                                />
+                    <div className="space-y-8">
+                        {/* First Row - Profile and Credentials */}
+                        <div className="flex flex-col lg:flex-row justify-center gap-8 mx-auto lg:max-w-6xl">
+                            {/* Profile Form */}
+                            <div className="w-full lg:w-1/2">
+                                <div className="bg-white rounded-lg shadow-sm border p-6">
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+                                    <ProfileForm
+                                        profile={profile}
+                                        setProfile={setProfile}
+                                        onProfileUpdate={handleProfileUpdate}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Credentials Form */}
+                            <div className="w-full lg:w-1/2">
+                                <div className="bg-white rounded-lg shadow-sm border p-6">
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Credentials</h2>
+                                    <CredentialForm
+                                        credentials={credentials}
+                                        setCredentials={setCredentials}
+                                        onCredentialsUpdate={handleProfileUpdate}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Credentials Form */}
-                        <div className="w-full">
-                            <div className="bg-white rounded-lg shadow-sm border p-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Credentials</h2>
-                                <CredentialForm
-                                    credentials={credentials}
-                                    setCredentials={setCredentials}
-                                    onCredentialsUpdate={handleProfileUpdate}
-                                />
+                        {/* Second Row - Login Methods */}
+                        <div className="flex justify-center mx-auto lg:max-w-4xl">
+                            <div className="w-full">
+                                <div className="bg-white rounded-lg shadow-sm border p-6">
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Login Methods</h2>
+                                    <p className="text-gray-600 mb-6">
+                                        Manage how you sign in to your account. You can use multiple login methods for convenience and security.
+                                    </p>
+                                    <LinkedAccounts onAccountsUpdate={handleProfileUpdate} />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Account Deactivation */}
-                    <div className="text-xl p-4 mb-4 md:max-w-5xl mx-auto mt-8">
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-xl font-semibold text-red-900 mb-4">Danger Zone</h2>
-                            <AccountDeactivation />
+                        {/* Third Row - Account Deactivation */}
+                        <div className="flex justify-center mx-auto lg:max-w-4xl">
+                            <div className="w-full">
+                                <div className="bg-white rounded-lg shadow-sm border p-6">
+                                    <h2 className="text-xl font-semibold text-red-900 mb-4">Danger Zone</h2>
+                                    <AccountDeactivation />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </>

@@ -3,22 +3,23 @@ const Joi = require('joi');
 module.exports = {
     validateUpdateProfile: data => {
         const schema = Joi.object({
-            firstName: Joi.string().required().messages({
-                'string.empty': 'First name is required',
-                'any.required': 'First name is required'
+            firstName: Joi.string().optional().messages({
+                'string.empty': 'First name cannot be empty'
             }),
-            lastName: Joi.string().required().messages({
-                'string.empty': 'Last name is required',
-                'any.required': 'Last name is required'
+            lastName: Joi.string().optional().messages({
+                'string.empty': 'Last name cannot be empty'
             }),
             displayName: Joi.string().optional(),
             avatar: Joi.string().optional().uri().messages({
                 'string.uri': 'Avatar must be a valid URL'
-            })
+            }),
+            // Add support for OAuth fields for unlinking
+            googleId: Joi.string().allow(null).optional(),
+            githubId: Joi.string().allow(null).optional(),
+            username: Joi.string().allow(null).optional()
         }).messages({
             'object.unknown': 'Unexpected field detected: {{#label}}'
         });
-
         return schema.validate(data, {
             abortEarly: false,
             stripUnknown: true
@@ -29,22 +30,26 @@ module.exports = {
         const schema = Joi.object({
             email: Joi.string()
                 .email({ tlds: { allow: false } })
-                .required()
+                .optional() // Make email optional for password-only updates
                 .messages({
-                    'string.empty': 'Email is required',
-                    'string.email': 'Please enter a valid email address',
-                    'any.required': 'Email is required'
+                    'string.empty': 'Email cannot be empty',
+                    'string.email': 'Please enter a valid email address'
                 }),
-            password: Joi.string().min(6).required().messages({
-                'string.empty': 'Password is required',
-                'string.min': 'Password must be at least 6 characters long',
-                'any.required': 'Password is required'
-            }),
-            phoneNumber: Joi.string().optional()
-        }).messages({
-            'object.unknown': 'Unexpected field detected: {{#label}}'
+            password: Joi.string()
+                .min(6)
+                .optional() // Password is optional - only allow setting, not removing
+                .messages({
+                    'string.empty': 'Password cannot be empty',
+                    'string.min': 'Password must be at least 6 characters long'
+                }),
+            phoneNumber: Joi.string().allow('').optional()
+        })
+        .or('email', 'password', 'phoneNumber') // Require at least one field
+        .messages({
+            'object.unknown': 'Unexpected field detected: {{#label}}',
+            'object.missing': 'At least one field (email, password, or phoneNumber) must be provided'
         });
-
+        
         return schema.validate(data, {
             abortEarly: false,
             stripUnknown: true
