@@ -6,3 +6,7 @@
     --color-highlight: #e67e22;
     --color-background: #e3d4b1;
 }
+
+body {
+    overflow-y: scroll;
+}

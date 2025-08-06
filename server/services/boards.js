@@ -224,7 +224,11 @@ const getBoardsService = async (userId, filterOptions = {}) => {
         let sortOption = {};
         if (sort === 'name' || sort === '-name') {
             sortOption.name = sort === 'name' ? 1 : -1;
-        } else {
+        } 
+        else if (sort === '-updatedAt') {
+            sortOption.updatedAt = -1;
+        }
+        else {
             sortOption.createdAt = sort === 'createdAt' ? 1 : -1;
         }
 
@@ -261,7 +265,7 @@ const getBoardsService = async (userId, filterOptions = {}) => {
             },
             sort: {
                 applied: sort,
-                available: ['name', '-name', 'createdAt', '-createdAt']
+                available: ['name', '-name', 'createdAt', '-createdAt', '-updatedAt']
             }
         };
     } catch (err) {

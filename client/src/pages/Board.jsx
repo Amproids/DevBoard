@@ -3,28 +3,36 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { boardService } from '../services/boardService';
 import AddColumnModal from '../components/Column/AddColumnModal.jsx';
 import Column from '../components/Column/Column.jsx';
+import BoardTags from '../components/Board/BoardTags.jsx';
+import BoardMetaInfo from '../components/Board/BoardMetaInfo.jsx';
+import BackToDashboard from '../components/Board/BackToDashboard.jsx';
+import EditBoardModal from '../components/Board/EditBoardModal.jsx';
+import RemoveBoardModal from '../components/Board/RemoveBoardModal.jsx';
 
 function Board() {
     const { id } = useParams();
     const navigate = useNavigate();
-    
+
     const [board, setBoard] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [showAddColumnModal, setShowAddColumnModal] = useState(false);
+    const [showEditBoardModal, setShowEditBoardModal] = useState(false);
+    const [showRemoveBoardModal, setShowRemoveBoardModal] = useState(false);
+    const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
     // Fetch board data
     const fetchBoard = async () => {
         try {
             setLoading(true);
             setError(false);
-            
+
             const response = await boardService.getBoardById(id);
             setBoard(response.data);
         } catch (error) {
             setError(true);
             console.error('Error fetching board:', error);
-            
+
             // If board not found or no permission, redirect to dashboard
             if (error.response?.status === 404 || error.response?.status === 403) {
                 setTimeout(() => navigate('/dashboard'), 2000);
@@ -60,7 +68,7 @@ function Board() {
         // Update the column in the board
         setBoard(prev => ({
             ...prev,
-            columns: prev.columns.map(col => 
+            columns: prev.columns.map(col =>
                 col._id === updatedColumn._id ? updatedColumn : col
             )
         }));
@@ -78,22 +86,6 @@ function Board() {
         navigate('/dashboard');
     };
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    const getMemberCount = () => {
-        return board?.members ? board.members.length : 0;
-    };
-
-    const getOwnerName = () => {
-        if (!board?.owner) return 'Unknown';
-        return `${board.owner.firstName || ''} ${board.owner.lastName || ''}`.trim() || 'Unknown';
-    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -115,9 +107,9 @@ function Board() {
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Board Not Found</h3>
                         <p className="text-gray-500 mb-6">The board you're looking for doesn't exist or you don't have permission to view it.</p>
-                        <button 
+                        <button
                             onClick={handleBackToDashboard}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                            className="bg-blue-600 cursor-pointer text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
                         >
                             Back to Dashboard
                         </button>
@@ -131,18 +123,8 @@ function Board() {
                     {/* Board Header */}
                     <div className="bg-white shadow-sm border-b">
                         <div className="container mx-auto px-4 py-4">
-                            {/* Navigation */}
-                            <div className="flex items-center mb-4">
-                                <button 
-                                    onClick={handleBackToDashboard}
-                                    className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-                                >
-                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                    Back to Dashboard
-                                </button>
-                            </div>
+                            {/* Back to Dashboard Navigation */}
+                            <BackToDashboard handleBackToDashboard={handleBackToDashboard} />
 
                             {/* Board Title and Info */}
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -151,61 +133,64 @@ function Board() {
                                     {board.description && (
                                         <p className="text-gray-600 mb-3">{board.description}</p>
                                     )}
-                                    
-                                    {/* Board Meta Info */}
-                                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                                        <div className="flex items-center">
-                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                            <span>Owner: {getOwnerName()}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                                            </svg>
-                                            <span>{getMemberCount()} members</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0v4m-4 0a8 8 0 110 16m0-16V4" />
-                                            </svg>
-                                            <span>Created {formatDate(board.createdAt)}</span>
-                                        </div>
-                                        {board.lockedColumns && (
-                                            <div className="flex items-center text-amber-600">
-                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                                <span>Columns Locked</span>
-                                            </div>
-                                        )}
-                                    </div>
 
-                                    {/* Tags */}
-                                    {board.tags && board.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {board.tags.map((tag, index) => (
-                                                <span 
-                                                    key={index}
-                                                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-                                                >
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {/* Board Meta Info */}
+                                    <BoardMetaInfo board={board} />
+
+                                    {/* Board Tags */}
+                                    <BoardTags tags={board.tags} />
+
                                 </div>
 
                                 {/* Board Actions */}
                                 <div className="flex items-center gap-3">
-                                    <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors">
-                                        <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                                        </svg>
-                                        Settings
-                                    </button>
-                                    <button 
+                                    <div>
+
+                                        {/* Dropdown for setting*/}
+                                        <div className="relative">
+                                            <button
+                                                className="cursor-pointer flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                                                onClick={() => setShowSettingsDropdown(prev => !prev)}
+                                                aria-haspopup="true"
+                                                aria-expanded={showSettingsDropdown}
+                                            >
+                                                <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                                                </svg>
+                                                Settings
+                                            </button>
+                                            {showSettingsDropdown && (
+                                                <div className="absolute md:right-0 mt-4 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                                                    <ul className="py-1">
+                                                        <li>
+                                                            <button
+                                                                className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                                                onClick={() => {
+                                                                    setShowEditBoardModal(true);
+                                                                    setShowSettingsDropdown(false);
+                                                                }}
+                                                            >
+                                                                Edit Board
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                                                onClick={() => {
+                                                                    setShowRemoveBoardModal(true);
+                                                                    setShowSettingsDropdown(false);
+                                                                }}
+                                                            >
+                                                                Delete Board
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                    </div>
+                                    <button
                                         onClick={handleAddColumn}
                                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                                     >
@@ -225,8 +210,8 @@ function Board() {
                         <div className="flex gap-6 overflow-x-auto min-h-96">
                             {board.columns && board.columns.length > 0 ? (
                                 board.columns.map((column) => (
-                                    <Column 
-                                        key={column._id} 
+                                    <Column
+                                        key={column._id}
                                         column={column}
                                         boardId={id}
                                         onColumnUpdated={handleColumnUpdated}
@@ -254,9 +239,23 @@ function Board() {
                     </div>
                 </>
             )}
+            {/* Edit Board Modal*/}
+            <EditBoardModal
+                isOpen={showEditBoardModal}
+                onClose={() => setShowEditBoardModal(false)}
+                board={board}
+                onBoardUpdated={handleBoardUpdate}
+            />
+
+            {/* Remove Board Modal*/}
+            <RemoveBoardModal
+                isOpen={showRemoveBoardModal}
+                onClose={() => setShowRemoveBoardModal(false)}
+                boardId={board?._id}
+            />
 
             {/* Add Column Modal */}
-            <AddColumnModal 
+            <AddColumnModal
                 isOpen={showAddColumnModal}
                 onClose={() => setShowAddColumnModal(false)}
                 boardId={id}

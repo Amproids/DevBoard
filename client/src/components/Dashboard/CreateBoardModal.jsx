@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { boardService } from '../../services/boardService';
+import CreateTags from '../Shared/CreateTags';
 
 function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
     const [formData, setFormData] = useState({
         name: '',
-        description: ''
+        description: '',
+        tags: []
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -19,7 +21,7 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.name.trim()) {
             setError('Board name is required');
             return;
@@ -28,16 +30,17 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
         try {
             setLoading(true);
             setError('');
-            
+
             const boardData = {
-                name: formData.name.trim()
+                name: formData.name.trim(),
+                tags: formData.tags || []
             };
-            
+
             // Only include description if it's not empty
             if (formData.description.trim()) {
                 boardData.description = formData.description.trim();
             }
-            
+
             const response = await boardService.createBoard(boardData);
 
             // Call the callback to refresh boards list
@@ -46,7 +49,7 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
             }
 
             // Reset form and close modal
-            setFormData({ name: '', description: '' });
+            setFormData({ name: '', description: '', tags: [] });
             onClose();
         } catch (error) {
             console.error('Error creating board:', error);
@@ -57,7 +60,7 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
     };
 
     const handleClose = () => {
-        setFormData({ name: '', description: '' });
+        setFormData({ name: '', description: '', tags: [] });
         setError('');
         onClose();
     };
@@ -65,13 +68,13 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#333333db] overflow-y-auto bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Create New Board</h2>
                     <button
                         onClick={handleClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 cursor-pointer hover:text-gray-700"
                         disabled={loading}
                     >
                         ✕
@@ -81,7 +84,7 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                            Board Name *
+                            Board Name <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -112,6 +115,15 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
                             maxLength={200}
                         />
                     </div>
+                    <div className="mb-10">
+                        <p className="text-sm font-medium text-gray-700 mb-2">
+                            Tags (Optional)
+                        </p>
+                        <CreateTags
+                            tags={formData.tags}
+                            setTags={(tags) => setFormData((prev) => ({ ...prev, tags }))}
+                        />
+                    </div>
 
                     {error && (
                         <div className="mb-4 text-red-600 text-sm">
@@ -123,14 +135,14 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                            className="px-4 py-2 cursor-pointer text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                             disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                             disabled={loading || !formData.name.trim()}
                         >
                             {loading ? 'Creating...' : 'Create Board'}
