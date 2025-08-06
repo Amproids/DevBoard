@@ -137,7 +137,7 @@ function LinkedAccounts({ onAccountsUpdate }) {
                     <div>
                         <button
                             onClick={() => setIsPasswordModalOpen(true)}
-                            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                            className="px-3 py-1.5 text-sm bg-[var(--color-highlight)] text-white rounded-md hover:bg-blue-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                             disabled={loading}
                         >
                             {hasPassword ? 'Change Password' : 'Set Password'}

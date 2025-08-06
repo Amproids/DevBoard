@@ -126,7 +126,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                     <button
                         type="button"
                         onClick={() => setIsPasswordModalOpen(true)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-2 bg-[var(--color-highlight)] text-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-blue-600 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 "
                         disabled={loading}
                     >
                         Change Password
@@ -136,7 +136,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                 <button
                     className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasChanges && !loading
-                            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 cursor-pointer'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                     type="submit"

@@ -1,43 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
-import { useFormStatus } from '../../hooks/useFormStatus';
+import DeactivateModal from './DeactivateModal';
 
 function AccountDeactivation() {
-    const [confirmation, setConfirmation] = useState('');
-    const { status, loading, setLoading, setErrorMessage } = useFormStatus();
-    const navigate = useNavigate();
-
-    const handleChange = event => {
-        const { value } = event.target;
-        setConfirmation(value);
-    };
-
-    const handleSubmit = async event => {
-        event.preventDefault();
-        setLoading(true);
-
-        try {
-            if (confirmation !== 'DEACTIVATE') {
-                throw new Error('Please type "DEACTIVATE" exactly to confirm');
-            }
-
-            await authService.deactivateAccount();
-            navigate('/logout');
-
-        } catch (error) {
-            console.error('Error deactivating account:', error);
-            setErrorMessage(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const isConfirmationValid = confirmation === 'DEACTIVATE';
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <div>
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-6">
                 <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                         <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -45,51 +14,26 @@ function AccountDeactivation() {
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-sm font-medium text-red-800">
-                            Danger Zone
+                        <h3 className="font-medium text-red-800 mb-1">
+                            Account Deactivation
                         </h3>
-                        <p className="mt-1 text-sm text-red-700">
-                            This action cannot be undone. Deactivating your account will permanently remove all your data, including boards, tasks, and personal information.
+                        <p className="text-sm text-red-700">
+                            Permanently delete your account and all associated data. This action cannot be undone.
                         </p>
                     </div>
                 </div>
             </div>
+            <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
+            >
+                Deactivate Account
+            </button>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label htmlFor="confirmation" className="block text-sm font-medium text-gray-700 mb-2">
-                        Type "DEACTIVATE" to confirm account deletion:
-                    </label>
-                    <input
-                        type="text"
-                        id="confirmation"
-                        name="confirmation"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        value={confirmation}
-                        onChange={handleChange}
-                        placeholder="DEACTIVATE"
-                        disabled={loading}
-                    />
-                </div>
-                
-                <button
-                    className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        isConfirmationValid && !loading
-                            ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                    type="submit"
-                    disabled={!isConfirmationValid || loading}
-                >
-                    {loading ? 'Deactivating Account...' : 'Deactivate Account'}
-                </button>
-                
-                {status.message && !status.success && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
-                        {status.message}
-                    </div>
-                )}
-            </form>
+            <DeactivateModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }
