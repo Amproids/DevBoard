@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { credentialsService } from '../../services/credentialsService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 import { useFormChanges } from '../../hooks/useFormChanges';
+import ChangePasswordModal from './ChangePasswordModal';
 
 function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     
     const { 
-        hasChanges: hasFieldChanges, 
+        hasChanges, 
         checkForChanges, 
         updateOriginalData 
     } = useFormChanges(
@@ -17,10 +19,6 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
         },
         [credentials.email, credentials.phoneNumber]
     );
-
-    const hasPasswordChanges = (credentials.password && credentials.password.length > 0) || 
-                              (credentials.confirmPassword && credentials.confirmPassword.length > 0);
-    const hasChanges = hasFieldChanges || hasPasswordChanges;
 
     useEffect(() => {
         checkForChanges({
@@ -42,21 +40,30 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
         setLoading(true);
         
         try {
-            credentialsService.validateCredentials(credentials);
-            await credentialsService.updateCredentials(credentials);
+            // Only validate email for this form (password is handled in modal)
+            const credentialsToValidate = {
+                email: credentials.email,
+                phoneNumber: credentials.phoneNumber,
+                password: '', // Empty password to skip password validation
+                confirmPassword: ''
+            };
             
-            setSuccessMessage('Credentials updated successfully');
+            credentialsService.validateCredentials(credentialsToValidate);
+            
+            // Only send email and phone number updates
+            const credentialsToUpdate = {
+                email: credentials.email,
+                phoneNumber: credentials.phoneNumber
+            };
+            
+            await credentialsService.updateCredentials(credentialsToUpdate);
+            
+            setSuccessMessage('Contact information updated successfully');
             
             updateOriginalData({
                 email: credentials.email,
                 phoneNumber: credentials.phoneNumber
             });
-            
-            setCredentials(prev => ({
-                ...prev,
-                password: '',
-                confirmPassword: ''
-            }));
             
             // Call parent callback to refresh data if provided
             if (onCredentialsUpdate) {
@@ -68,6 +75,13 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
             setErrorMessage(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePasswordUpdate = async () => {
+        // Refresh the parent data when password is updated
+        if (onCredentialsUpdate) {
+            await onCredentialsUpdate();
         }
     };
 
@@ -91,7 +105,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                     />
                 </div>
                 
-                <div className="flex flex-col mb-4">
+                <div className="flex flex-col mb-6">
                     <label htmlFor="phoneNumber" className="mb-2 text-sm font-medium text-gray-700">
                         Phone Number
                     </label>
@@ -107,38 +121,16 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                     />
                 </div>
                 
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="password" className="mb-2 text-sm font-medium text-gray-700">
-                        New Password <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        value={credentials.password || ''}
-                        onChange={handleChange}
-                        placeholder="Enter new password (min. 6 characters)"
+                {/* Password Change Button */}
+                <div className="mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setIsPasswordModalOpen(true)}
+                        className="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
-                        minLength={6}
-                    />
-                </div>
-                
-                <div className="flex flex-col mb-6">
-                    <label htmlFor="confirmPassword" className="mb-2 text-sm font-medium text-gray-700">
-                        Confirm New Password <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        value={credentials.confirmPassword || ''}
-                        onChange={handleChange}
-                        placeholder="Confirm your new password"
-                        disabled={loading}
-                        minLength={6}
-                    />
+                    >
+                        Change Password
+                    </button>
                 </div>
                 
                 <button
@@ -150,7 +142,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                     type="submit"
                     disabled={!hasChanges || loading}
                 >
-                    {loading ? 'Updating...' : 'Update Credentials'}
+                    {loading ? 'Updating...' : 'Update Contact Information'}
                 </button>
                 
                 {status.message && (
@@ -159,6 +151,13 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                     </div>
                 )}
             </form>
+
+            {/* Password Change Modal */}
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onPasswordUpdate={handlePasswordUpdate}
+            />
         </div>
     );
 }

@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { linkedAccountsService } from '../../services/linkedAccountsService';
 import { useApi } from '../../hooks/useApi';
 import { useFormStatus } from '../../hooks/useFormStatus';
+import ChangePasswordModal from './ChangePasswordModal';
 
 function LinkedAccounts({ onAccountsUpdate }) {
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
-    const [passwordData, setPasswordData] = useState({
-        password: '',
-        confirmPassword: ''
-    });
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     const { 
         data: accountsData, 
@@ -64,21 +61,10 @@ function LinkedAccounts({ onAccountsUpdate }) {
         }
     };
 
-    const handleSetPassword = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            await linkedAccountsService.setPassword(passwordData);
-            setSuccessMessage('Password set successfully');
-            setPasswordData({ password: '', confirmPassword: '' });
-            setShowPasswordForm(false);
-            await fetchLinkedAccounts();
-            if (onAccountsUpdate) await onAccountsUpdate();
-        } catch (error) {
-            setErrorMessage(error);
-        } finally {
-            setLoading(false);
-        }
+    const handlePasswordUpdate = async () => {
+        // Refresh the accounts data when password is updated
+        await fetchLinkedAccounts();
+        if (onAccountsUpdate) await onAccountsUpdate();
     };
 
     if (loading && !accountsData) {
@@ -126,15 +112,13 @@ function LinkedAccounts({ onAccountsUpdate }) {
                         </div>
                     </div>
                     <div className="flex space-x-2">
-                        {!hasPassword && (
-                            <button
-                                onClick={() => setShowPasswordForm(true)}
-                                className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                disabled={loading}
-                            >
-                                Set Password
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setIsPasswordModalOpen(true)}
+                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={loading}
+                        >
+                            {hasPassword ? 'Change Password' : 'Set Password'}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -191,68 +175,19 @@ function LinkedAccounts({ onAccountsUpdate }) {
                 </div>
             </div>
 
-            {/* Password Form Modal */}
-            {showPasswordForm && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Set Password</h3>
-                        <form onSubmit={handleSetPassword} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    New Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={passwordData.password}
-                                    onChange={(e) => setPasswordData(prev => ({ ...prev, password: e.target.value }))}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    minLength={6}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Confirm Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={passwordData.confirmPassword}
-                                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    minLength={6}
-                                    required
-                                />
-                            </div>
-                            <div className="flex space-x-3 pt-4">
-                                <button
-                                    type="submit"
-                                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Setting...' : 'Set Password'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowPasswordForm(false);
-                                        setPasswordData({ password: '', confirmPassword: '' });
-                                    }}
-                                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
             {/* Status Messages */}
             {status.message && (
                 <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
                     {status.message}
                 </div>
             )}
+
+            {/* Change Password Modal */}
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onPasswordUpdate={handlePasswordUpdate}
+            />
         </div>
     );
 }

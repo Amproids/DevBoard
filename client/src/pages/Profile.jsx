@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import ProfileForm from '../components/ProfileManagement/ProfileForm';
 import CredentialForm from '../components/ProfileManagement/CredentialForm';
 import LinkedAccounts from '../components/ProfileManagement/linkedAccounts.jsx';
-import AccountDeactivation from '../components/ProfileManagement/AccountDeactivation';
+import DeactivateModal from '../components/ProfileManagement/DeactivateModal'; // Updated import
 import { useApi } from '../hooks/useApi';
 import { useFormStatus } from '../hooks/useFormStatus';
 import { profileService } from '../services/profileService';
 
 function Profile() {
     const navigate = useNavigate();
+    
+    // Modal state
+    const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
     
     // Form state
     const [profile, setProfile] = useState({
@@ -88,6 +91,14 @@ function Profile() {
             console.error('Error refreshing profile:', error);
             setErrorMessage(error);
         }
+    };
+
+    const handleDeactivateClick = () => {
+        setIsDeactivateModalOpen(true);
+    };
+
+    const handleCloseDeactivateModal = () => {
+        setIsDeactivateModalOpen(false);
     };
 
     return (
@@ -178,18 +189,46 @@ function Profile() {
                             </div>
                         </div>
 
-                        {/* Third Row - Account Deactivation */}
+                        {/* Third Row - Account Deactivation (Updated to use button) */}
                         <div className="flex justify-center mx-auto lg:max-w-4xl">
                             <div className="w-full">
                                 <div className="bg-white rounded-lg shadow-sm border p-6">
                                     <h2 className="text-xl font-semibold text-red-900 mb-4">Danger Zone</h2>
-                                    <AccountDeactivation />
+                                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0">
+                                                <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div className="ml-3">
+                                                <h3 className="text-sm font-medium text-red-800">
+                                                    Account Deactivation
+                                                </h3>
+                                                <p className="mt-1 text-sm text-red-700">
+                                                    Permanently delete your account and all associated data. This action cannot be undone.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleDeactivateClick}
+                                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    >
+                                        Deactivate Account
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </>
             )}
+
+            {/* Deactivate Modal */}
+            <DeactivateModal 
+                isOpen={isDeactivateModalOpen} 
+                onClose={handleCloseDeactivateModal} 
+            />
         </div>
     );
 }
