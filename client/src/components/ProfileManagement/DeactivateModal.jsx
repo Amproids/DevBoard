@@ -77,7 +77,7 @@ function DeactivateModal({ isOpen, onClose }) {
 
     return (
         <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             onClick={handleBackdropClick}
         >
             <div 
@@ -91,8 +91,9 @@ function DeactivateModal({ isOpen, onClose }) {
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                         disabled={loading}
+                        aria-label="Close modal"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -104,13 +105,13 @@ function DeactivateModal({ isOpen, onClose }) {
                 <div className="p-6">
                     {/* Warning Banner */}
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-start">
+                        <div className="flex items-start gap-3">
                             <div className="flex-shrink-0">
                                 <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                 </svg>
                             </div>
-                            <div className="ml-3">
+                            <div>
                                 <h3 className="text-sm font-medium text-red-800">
                                     This action cannot be undone
                                 </h3>
@@ -131,7 +132,7 @@ function DeactivateModal({ isOpen, onClose }) {
                                 type="text"
                                 id="confirmation"
                                 name="confirmation"
-                                className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 value={confirmation}
                                 onChange={handleChange}
                                 placeholder="DEACTIVATE"
@@ -148,7 +149,7 @@ function DeactivateModal({ isOpen, onClose }) {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 space-y-2 space-y-reverse sm:space-y-0 pt-4">
+                        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
                             <button
                                 type="button"
                                 onClick={onClose}

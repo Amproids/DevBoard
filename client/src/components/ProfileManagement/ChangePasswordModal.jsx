@@ -89,17 +89,18 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
 
     return (
         <div 
-            className="fixed inset-0 bg-neutral-900/50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
             onClick={handleBackdropClick}
         >
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                         disabled={loading}
+                        aria-label="Close modal"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -108,16 +109,16 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit}>
-                    <div className="flex flex-col mb-4">
-                        <label htmlFor="modal-password" className="mb-2 text-sm font-medium text-gray-700">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label htmlFor="modal-password" className="block text-sm font-medium text-gray-700 mb-2">
                             New Password <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="password"
                             id="modal-password"
                             name="password"
-                            className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             value={passwordData.password}
                             onChange={handleChange}
                             placeholder="Enter new password (min. 6 characters)"
@@ -130,15 +131,15 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
                         )}
                     </div>
                     
-                    <div className="flex flex-col mb-6">
-                        <label htmlFor="modal-confirmPassword" className="mb-2 text-sm font-medium text-gray-700">
+                    <div>
+                        <label htmlFor="modal-confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                             Confirm New Password <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="password"
                             id="modal-confirmPassword"
                             name="confirmPassword"
-                            className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             value={passwordData.confirmPassword}
                             onChange={handleChange}
                             placeholder="Confirm your new password"
@@ -147,30 +148,30 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
                             required
                         />
                         {passwordsMismatch && (
-                            <p className="text-red-500 text-sm mt-1">Must match password</p>
+                            <p className="text-red-500 text-sm mt-1">Passwords must match</p>
                         )}
                     </div>
 
                     {/* Status Message */}
                     {status.message && (
-                        <div className={`mb-4 p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
                             {status.message}
                         </div>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                                 isFormValid && !loading
                                     ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
                                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
