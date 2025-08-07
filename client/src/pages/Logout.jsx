@@ -1,18 +1,33 @@
 import { useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../hooks/useAuth';
+import { authService } from '../services/authService';
 
 function Logout({ setIsAuthenticated }) {
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+    
+    // Use the prop if provided, otherwise use the hook
+    const handleLogout = setIsAuthenticated || logout;
+
     useEffect(() => {
-        // Automatically logout when component mounts
-        console.log('Logout component mounted, setIsAuthenticated:', typeof setIsAuthenticated);
-        console.log('Token before logout:', localStorage.getItem('authToken'));
-        
-        if (setIsAuthenticated) {
-            setIsAuthenticated();
-            console.log('Logout function called');
-            console.log('Token after logout:', localStorage.getItem('authToken'));
-        }
-    }, [setIsAuthenticated]);
+        const performLogout = async () => {
+            try {
+                // Use authService for clean logout
+                authService.logout();
+                
+                // Update global/local auth state
+                handleLogout();
+                
+            } catch (error) {
+                console.error('Error during logout:', error);
+                // Even if there's an error, still try to logout locally
+                handleLogout();
+            }
+        };
+
+        performLogout();
+    }, [handleLogout]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

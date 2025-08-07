@@ -1,50 +1,83 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useFormStatus } from '../hooks/useFormStatus';
+import { useFormChanges } from '../hooks/useFormChanges';
+import { useAuth } from '../hooks/useAuth';
+import { authService } from '../services/authService';
+import { setAuthToken } from '../utils/tokenUtils';
 import OAuthButtons from '../components/Authentication/OAuthButtons';
-import { API_BASE_URL } from '../config/config';
 
 function Login({ setIsAuthenticated }) {
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    
+    // Use the prop if provided, otherwise use the hook
+    const handleLogin = setIsAuthenticated || login;
+    
+    // Form data state
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+
+    // Use custom hooks
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { hasChanges, checkForChanges } = useFormChanges(formData);
 
     const handleInputChange = (e) => {
-        setFormData({
+        const { name, value } = e.target;
+        const updatedData = {
             ...formData,
-            [e.target.name]: e.target.value
-        });
+            [name]: value
+        };
+        setFormData(updatedData);
+        checkForChanges(updatedData);
+    };
+
+    const validateForm = () => {
+        if (!formData.email.trim()) {
+            throw new Error('Email is required');
+        }
+        if (!formData.email.includes('@')) {
+            throw new Error('Please enter a valid email address');
+        }
+        if (!formData.password.trim()) {
+            throw new Error('Password is required');
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError('');
-
+        
         try {
-            const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+            setLoading(true);
+            
+            // Validate form data
+            validateForm();
+
+            // Call auth service to login
+            const response = await authService.login({
                 email: formData.email,
                 password: formData.password
             });
 
             // Handle successful login
-            const { token, user } = response.data.data;
-
-            // Store token
-            localStorage.setItem('authToken', token);
-
-            // Update user state
-            setIsAuthenticated();
-
-            // Redirect to dashboard or home page
-            navigate('/dashboard');
-
-        } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please try again.');
+            const { token, user } = response.data;
+            
+            // Store token and update auth state
+            setAuthToken(token);
+            handleLogin(token);
+            
+            setSuccessMessage('Login successful! Redirecting...');
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+                navigate('/dashboard');
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Login error:', error);
+            setErrorMessage(error);
         } finally {
             setLoading(false);
         }
@@ -71,12 +104,12 @@ function Login({ setIsAuthenticated }) {
                 </p>
 
                 <div className="bg-white p-8 rounded-lg shadow-md">
-                    {/* OAuth Buttons */}
+                    {/* OAuth Buttons - Now using extracted component */}
                     <OAuthButtons
-                        label='login'
-                        errorCallback={(message) =>
-                            setError(message)
-                        }
+                        label="login"
+                        loading={loading}
+                        onError={setErrorMessage}
+                        onLoading={setLoading}
                     />
 
                     {/* Divider */}
@@ -100,8 +133,8 @@ function Login({ setIsAuthenticated }) {
                             value={formData.email}
                             onChange={handleInputChange}
                             placeholder="Email"
-                            aria-label='Email'
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
+                            disabled={loading}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             required
                         />
                         <label htmlFor="password" aria-hidden="true" hidden>Password</label>
@@ -112,8 +145,8 @@ function Login({ setIsAuthenticated }) {
                             value={formData.password}
                             onChange={handleInputChange}
                             placeholder="Password"
-                            aria-label='Password'
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
+                            disabled={loading}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             required
                         />
                         <button
@@ -125,16 +158,16 @@ function Login({ setIsAuthenticated }) {
                         </button>
                     </form>
 
-                    {/* Error Display */}
-                    {error && (
-                        <div className={`p-3 mt-6 rounded-md bg-red-50 text-red-800`}>
-                            {error}
+                    {/* Status Messages */}
+                    {status.message && (
+                        <div className={`mt-4 p-3 rounded-lg ${status.success ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`}>
+                            {status.message}
                         </div>
                     )}
 
                     {/* Additional links */}
                     <div className="mt-6 text-center">
-                        <Link to="/reset/password" className="text-sm text-gray-600 hover:text-gray-900">
+                        <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
                             Forgot your password?
                         </Link>
                     </div>

@@ -7,7 +7,7 @@ import {
     extractTokenFromUrl
 } from '../utils/tokenUtils';
 
-function useAuth() {
+export const useAuth = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 

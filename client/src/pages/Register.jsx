@@ -1,12 +1,16 @@
-import axios from 'axios';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useFormStatus } from '../hooks/useFormStatus';
+import { useFormChanges } from '../hooks/useFormChanges';
+import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 import OAuthButtons from '../components/Authentication/OAuthButtons';
 import RegisterForm from '../components/Authentication/RegisterForm';
-import { API_BASE_URL } from '../config/config';
 
 function Register() {
     const navigate = useNavigate();
+    
+    // Form data state
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -15,53 +19,49 @@ function Register() {
         password: '',
         confirmPassword: ''
     });
-    const [status, setStatus] = useState({
-        success: false,
-        message: ''
-    });
-    const [loading, setLoading] = useState(false);
+
+    // Use custom hooks
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { hasChanges, checkForChanges } = useFormChanges(formData);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setFormData(prevData => ({
-            ...prevData,
+        const updatedData = {
+            ...formData,
             [name]: value
-        }));
+        };
+        setFormData(updatedData);
+        checkForChanges(updatedData);
+    };
+
+    const validateForm = () => {
+        if (formData.password !== formData.confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+        if (formData.password.length < 6) {
+            throw new Error('Password must be at least 6 characters long');
+        }
+        if (!formData.email.includes('@')) {
+            throw new Error('Please enter a valid email address');
+        }
+        if (!formData.firstName.trim() || !formData.lastName.trim()) {
+            throw new Error('First name and last name are required');
+        }
     };
 
     const handleSubmit = async (event) => {
+        event.preventDefault();
+        
         try {
-            event.preventDefault();
-            setStatus({
-                success: false,
-                message: ''
-            });
             setLoading(true);
+            
+            // Validate form data
+            validateForm();
 
-            // Validate passwords match
-            if (formData.password !== formData.confirmPassword) {
-                throw {
-                    response: { data: { message: 'Passwords do not match' } }
-                };
-            }
+            // Call user service to register
+            await userService.register(formData);
 
-            // Make API call to register
-            const response = await axios.post(
-                `${API_BASE_URL}/users/register`,
-                {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    phoneNumber: formData.phoneNumber,
-                    password: formData.password,
-                    confirmPassword: formData.confirmPassword
-                }
-            );
-
-            setStatus({
-                success: true,
-                message: 'Account created successfully! Redirecting to login...'
-            });
+            setSuccessMessage('Account created successfully! Redirecting to login...');
 
             // Redirect to login after successful registration
             setTimeout(() => {
@@ -70,10 +70,7 @@ function Register() {
 
         } catch (error) {
             console.error('Error creating account:', error);
-            setStatus({
-                success: false,
-                message: error.response?.data?.message || 'An error occurred while creating your account'
-            });
+            setErrorMessage(error);
         } finally {
             setLoading(false);
         }
@@ -91,7 +88,7 @@ function Register() {
                         Already have an account?{' '}
                         <Link
                             to="/login"
-                            className="font-medium text-[var(--color-secondary)] hover:text-[var(--color-highlight)]"
+                            className="font-medium text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition-colors"
                         >
                             Log in here
                         </Link>
@@ -100,18 +97,12 @@ function Register() {
 
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                     <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-
-                        <OAuthButtons 
-                            label='signup'
-                            errorCallback={(message) => 
-                                setStatus(
-                                    { 
-                                        success: false, 
-                                        message: message 
-                                    }
-
-                                )
-                            } 
+                        {/* OAuth Buttons - Now using extracted component */}
+                        <OAuthButtons
+                            label="signup"
+                            loading={loading}
+                            onError={setErrorMessage}
+                            onLoading={setLoading}
                         />
 
                         {/* Divider */}
@@ -126,13 +117,13 @@ function Register() {
                             </div>
                         </div>
 
-                        {/* Email/Password Form */}
+                        {/* Registration Form - Now using extracted component */}
                         <RegisterForm
-                            onSubmit={handleSubmit}
+                            formData={formData}
                             loading={loading}
                             status={status}
-                            formData={formData}
-                            handleChange={handleChange}
+                            onChange={handleChange}
+                            onSubmit={handleSubmit}
                         />
                     </div>
                 </div>

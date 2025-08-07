@@ -1,10 +1,9 @@
-// components/ProfileForm.jsx
 import React, { useEffect } from 'react';
 import { profileService } from '../../services/profileService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 import { useFormChanges } from '../../hooks/useFormChanges';
 
-function ProfileForm({ profile, setProfile }) {
+function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
 
     const {
@@ -13,15 +12,14 @@ function ProfileForm({ profile, setProfile }) {
         updateOriginalData
     } = useFormChanges(
         {
-            firstName: profile.firstName || '',
-            lastName: profile.lastName || '',
-            displayName: profile.displayName || '',
-            avatar: profile.avatar || null
+            firstName: profile?.firstName || '',
+            lastName: profile?.lastName || '',
+            displayName: profile?.displayName || '',
+            avatar: profile?.avatar || null
         },
-        [profile.firstName, profile.lastName, profile.displayName, profile.avatar]
+        [profile?.firstName, profile?.lastName, profile?.displayName, profile?.avatar]
     );
 
-    // Check for changes whenever profile changes
     useEffect(() => {
         checkForChanges(profile);
     }, [profile, checkForChanges]);
@@ -30,12 +28,12 @@ function ProfileForm({ profile, setProfile }) {
         const { name, value, files } = event.target;
 
         if (name === 'avatar' && files && files[0]) {
-            setProfile(prevProfile => ({
+            setProfile?.(prevProfile => ({
                 ...prevProfile,
                 [name]: files[0]
             }));
         } else {
-            setProfile(prevProfile => ({
+            setProfile?.(prevProfile => ({
                 ...prevProfile,
                 [name]: value
             }));
@@ -50,6 +48,11 @@ function ProfileForm({ profile, setProfile }) {
             await profileService.updateProfile(profile);
             setSuccessMessage('Profile updated successfully');
             updateOriginalData(profile);
+            
+            // Call parent callback to refresh data if provided
+            if (onProfileUpdate) {
+                await onProfileUpdate();
+            }
         } catch (error) {
             console.error('Error updating profile:', error);
             setErrorMessage(error);
@@ -60,83 +63,91 @@ function ProfileForm({ profile, setProfile }) {
 
     return (
         <div>
-            <h2 className="text-xl font-medium mb-4 mt-4 md:mt-16">
-                Profile Management
-            </h2>
-            <form onSubmit={handleSubmit}>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="firstName">
-                        First Name <span className="p-1 text-red-500">*</span>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                        First Name <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         id="firstName"
                         name="firstName"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.firstName || ''}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-[var(--color-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        value={profile?.firstName || ''}
                         onChange={handleChange}
                         placeholder="Enter your first name"
+                        disabled={loading}
                         required
                     />
                 </div>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="lastName">
-                        Last Name <span className="p-1 text-red-500">*</span>
+                
+                <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                        Last Name <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         id="lastName"
                         name="lastName"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.lastName || ''}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-[var(--color-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        value={profile?.lastName || ''}
                         onChange={handleChange}
                         placeholder="Enter your last name"
+                        disabled={loading}
                         required
                     />
                 </div>
 
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="displayName">Display Name</label>
+                <div>
+                    <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-2">
+                        Display Name
+                    </label>
                     <input
                         type="text"
                         id="displayName"
                         name="displayName"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        value={profile.displayName || ''}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-[var(--color-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        value={profile?.displayName || ''}
                         onChange={handleChange}
                         placeholder="Enter your display name"
+                        disabled={loading}
                     />
                 </div>
 
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="avatar">Profile Picture</label>
-                    <input
-                        type="file"
-                        id="avatar"
-                        name="avatar"
-                        className="border border-gray-300 rounded-lg p-2 file:rounded-lg file:bg-[#f3f4f6] focus:outline-none focus:ring-0"
-                        onChange={handleChange}
-                        accept="image/*"
-                    />
+                <div>
+                    <label htmlFor="avatar" className="block text-sm font-medium text-gray-700 mb-2">
+                        Profile Picture
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="file"
+                            id="avatar"
+                            name="avatar"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-[var(--color-secondary)] disabled:opacity-50 cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[var(--color-primary)] file:text-gray-800 hover:file:bg-[var(--color-highlight)]"
+                            onChange={handleChange}
+                            accept="image/*"
+                            disabled={loading}
+                        />
+                    </div>
                 </div>
+                
                 <button
-                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${hasChanges && !loading
-                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                    className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-secondary)] cursor-pointer ${
+                        hasChanges && !loading
+                            ? 'bg-[var(--color-secondary)] text-white hover:bg-[var(--color-highlight)]'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
+                    }`}
                     type="submit"
                     disabled={!hasChanges || loading}
                 >
                     {loading ? 'Updating...' : 'Update Profile'}
                 </button>
-                <div className="mt-4">
-                    {status.success && (
-                        <p className="text-green-500">{status.message}</p>
-                    )}
-                    {!status.success && status.message && (
-                        <p className="text-red-500">{status.message}</p>
-                    )}
-                </div>
+                
+                {status.message && (
+                    <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        {status.message}
+                    </div>
+                )}
             </form>
         </div>
     );
