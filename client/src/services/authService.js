@@ -19,6 +19,52 @@ export const authService = {
     },
 
     /**
+     * Redirect to OAuth provider
+     * @param {string} provider - OAuth provider (google, github, etc.)
+     */
+    async redirectToOAuth(provider) {
+        try {
+            const url = `${API_BASE_URL}/auth/${provider.toLowerCase()}`;
+            console.log(`Redirecting to ${provider}:`, url);
+            window.location.href = url;
+        } catch (error) {
+            console.error(`Error redirecting to ${provider}:`, error);
+            throw new Error(`${provider} authentication failed. Please try again.`);
+        }
+    },
+
+    /**
+     * Login with email and password
+     * @param {Object} credentials - Login credentials
+     * @returns {Promise} API response
+     */
+    async login(credentials) {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+            return response.data;
+        } catch (error) {
+            console.error('Error logging in:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Refresh authentication token
+     * @returns {Promise} API response
+     */
+    async refreshToken() {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
+                headers: this.getAuthHeaders()
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Deactivate user account
      * @returns {Promise} API response
      */
@@ -46,7 +92,14 @@ export const authService = {
      */
     logout() {
         removeAuthToken();
-    }
+    },
 
-    // ... other methods can be added here
+    /**
+     * Check if user is authenticated
+     * @returns {boolean} Authentication status
+     */
+    isAuthenticated() {
+        const token = getAuthToken();
+        return !!token;
+    }
 };

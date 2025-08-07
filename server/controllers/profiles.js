@@ -9,9 +9,16 @@ exports.getProfile = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const profile = await profileService.getProfile(userId);
+        
+        // Add hasPassword field to the response
+        const profileWithPasswordStatus = {
+            ...profile.toObject(),
+            hasPassword: !!profile.password
+        };
+        
         res.status(200).json({
             success: true,
-            data: profile,
+            data: profileWithPasswordStatus,
             message: 'Profile retrieved successfully'
         });
     } catch (error) {
@@ -37,8 +44,20 @@ exports.updateProfile = async (req, res, next) => {
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             displayName: req.body.displayName,
-            avatar: req.body.avatar
+            avatar: req.body.avatar,
+            // Add support for unlinking OAuth accounts
+            googleId: req.body.googleId,
+            githubId: req.body.githubId,
+            username: req.body.username
         };
+        
+        // Remove undefined values to avoid overwriting with undefined
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] === undefined) {
+                delete updateData[key];
+            }
+        });
+        
         const updatedProfile = await profileService.updateProfile(
             userId,
             updateData
@@ -72,6 +91,14 @@ exports.updateCredentials = async (req, res, next) => {
             password: req.body.password,
             phoneNumber: req.body.phoneNumber
         };
+        
+        // Remove undefined values
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] === undefined) {
+                delete updateData[key];
+            }
+        });
+        
         const updatedCredentials = await profileService.updateCredential(
             userId,
             updateData
