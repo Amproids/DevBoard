@@ -11,7 +11,7 @@ import { profileService } from '../services/profileService';
 function Profile() {
     const navigate = useNavigate();
     
-    // Form state
+    // Form state - Initialize with default values to prevent undefined errors
     const [profile, setProfile] = useState({
         firstName: '',
         lastName: '',
@@ -142,7 +142,7 @@ function Profile() {
                     </div>
                 )}
 
-                {/* Profile Content */}
+                {/* Profile Content - Only show when not loading and no error */}
                 {!loading && !error && (
                     <>
                         {/* Header Section */}

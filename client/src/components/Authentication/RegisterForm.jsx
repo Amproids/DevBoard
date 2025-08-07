@@ -1,6 +1,12 @@
+import React from 'react';
 
-
-function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
+function RegisterForm({ 
+    formData, 
+    loading = false, 
+    status = {}, 
+    onChange, 
+    onSubmit 
+}) {
     return (
         <form onSubmit={onSubmit} className="space-y-6">
             {/* First Name */}
@@ -13,10 +19,11 @@ function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
                         type="text"
                         id="firstName"
                         name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
+                        value={formData.firstName || ''}
+                        onChange={onChange}
                         required
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                        disabled={loading}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Enter your first name"
                     />
                 </div>
@@ -32,10 +39,11 @@ function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
                         type="text"
                         id="lastName"
                         name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
+                        value={formData.lastName || ''}
+                        onChange={onChange}
                         required
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                        disabled={loading}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Enter your last name"
                     />
                 </div>
@@ -51,10 +59,11 @@ function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
                         type="email"
                         id="email"
                         name="email"
-                        value={formData.email}
-                        onChange={handleChange}
+                        value={formData.email || ''}
+                        onChange={onChange}
                         required
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                        disabled={loading}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Enter your email address"
                     />
                 </div>
@@ -70,9 +79,10 @@ function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
                         type="tel"
                         id="phoneNumber"
                         name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                        value={formData.phoneNumber || ''}
+                        onChange={onChange}
+                        disabled={loading}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Enter your phone number (optional)"
                     />
                 </div>
@@ -88,11 +98,12 @@ function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
                         type="password"
                         id="password"
                         name="password"
-                        value={formData.password}
-                        onChange={handleChange}
+                        value={formData.password || ''}
+                        onChange={onChange}
                         required
                         minLength={6}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                        disabled={loading}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Enter your password (min. 6 characters)"
                     />
                 </div>
@@ -108,11 +119,12 @@ function RegisterForm({ onSubmit, loading, status, formData, handleChange }) {
                         type="password"
                         id="confirmPassword"
                         name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
+                        value={formData.confirmPassword || ''}
+                        onChange={onChange}
                         required
                         minLength={6}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm"
+                        disabled={loading}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Confirm your password"
                     />
                 </div>

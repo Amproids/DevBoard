@@ -1,14 +1,15 @@
-// components/CredentialForm.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { credentialsService } from '../../services/credentialsService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 import { useFormChanges } from '../../hooks/useFormChanges';
+import ChangePasswordModal from './ChangePasswordModal';
 
-function CredentialForm({ credentials, setCredentials }) {
+function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     
     const { 
-        hasChanges: hasFieldChanges, 
+        hasChanges, 
         checkForChanges, 
         updateOriginalData 
     } = useFormChanges(
@@ -19,12 +20,6 @@ function CredentialForm({ credentials, setCredentials }) {
         [credentials.email, credentials.phoneNumber]
     );
 
-    // Check for changes including password fields
-    const hasPasswordChanges = (credentials.password && credentials.password.length > 0) || 
-                              (credentials.confirmPassword && credentials.confirmPassword.length > 0);
-    const hasChanges = hasFieldChanges || hasPasswordChanges;
-
-    // Check for changes whenever credentials change
     useEffect(() => {
         checkForChanges({
             email: credentials.email,
@@ -45,26 +40,35 @@ function CredentialForm({ credentials, setCredentials }) {
         setLoading(true);
         
         try {
-            // Validate credentials
-            credentialsService.validateCredentials(credentials);
+            // Only validate email for this form (password is handled in modal)
+            const credentialsToValidate = {
+                email: credentials.email,
+                phoneNumber: credentials.phoneNumber,
+                password: '', // Empty password to skip password validation
+                confirmPassword: ''
+            };
             
-            // Update credentials
-            await credentialsService.updateCredentials(credentials);
+            credentialsService.validateCredentials(credentialsToValidate);
             
-            setSuccessMessage('Credentials updated successfully');
+            // Only send email and phone number updates
+            const credentialsToUpdate = {
+                email: credentials.email,
+                phoneNumber: credentials.phoneNumber
+            };
             
-            // Update original credentials after successful save
+            await credentialsService.updateCredentials(credentialsToUpdate);
+            
+            setSuccessMessage('Contact information updated successfully');
+            
             updateOriginalData({
                 email: credentials.email,
                 phoneNumber: credentials.phoneNumber
             });
             
-            // Clear passwords after successful update
-            setCredentials(prev => ({
-                ...prev,
-                password: '',
-                confirmPassword: ''
-            }));
+            // Call parent callback to refresh data if provided
+            if (onCredentialsUpdate) {
+                await onCredentialsUpdate();
+            }
             
         } catch (error) {
             console.error('Error updating credentials:', error);
@@ -74,92 +78,86 @@ function CredentialForm({ credentials, setCredentials }) {
         }
     };
 
+    const handlePasswordUpdate = async () => {
+        // Refresh the parent data when password is updated
+        if (onCredentialsUpdate) {
+            await onCredentialsUpdate();
+        }
+    };
+
     return (
         <div>
-            <h2 className="text-xl font-medium mb-4 mt-4 md:mt-16">
-                Credential Management
-            </h2>
-            <form onSubmit={handleSubmit}>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="email">
-                        Email<span className="p-1 text-red-500">*</span>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="email"
                         id="email"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
                         name="email"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={credentials.email || ''}
                         onChange={handleChange}
                         placeholder="Enter your email"
+                        disabled={loading}
                         required
                     />
                 </div>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="phoneNumber">Phone Number</label>
+                
+                <div>
+                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number
+                    </label>
                     <input
                         type="tel"
                         id="phoneNumber"
                         name="phoneNumber"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         value={credentials.phoneNumber || ''}
                         onChange={handleChange}
                         placeholder="Enter your phone number"
+                        disabled={loading}
                     />
                 </div>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="password">
-                        Password <span className="p-1 text-red-500">*</span>
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        name="password"
-                        value={credentials.password || ''}
-                        onChange={handleChange}
-                        placeholder="Enter your password"
-                        required
-                        minLength={6}
-                    />
+                
+                {/* Password Change Button */}
+                <div>
+                    <button
+                        type="button"
+                        onClick={() => setIsPasswordModalOpen(true)}
+                        className="w-full px-4 py-2 bg-[var(--color-highlight)] text-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-blue-600 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 "
+                        disabled={loading}
+                    >
+                        Change Password
+                    </button>
                 </div>
-                <div className="flex flex-col mb-4">
-                    <label htmlFor="confirmPassword">
-                        Confirm Password{' '}
-                        <span className="p-1 text-red-500">*</span>
-                    </label>
-                    <input
-                        type="password"
-                        id="confirmPassword"
-                        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-0"
-                        name="confirmPassword"
-                        value={credentials.confirmPassword || ''}
-                        onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
-                        minLength={6}
-                    />
-                </div>
+                
                 <button
-                    className={`cursor-pointer text-black py-2 px-4 rounded-lg focus:outline-none focus:ring-0 transition-colors ${
+                    className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasChanges && !loading
-                            ? 'bg-[var(--color-secondary)] hover:bg-[var(--color-highlight)]'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 cursor-pointer'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                     type="submit"
                     disabled={!hasChanges || loading}
                 >
-                    {loading ? 'Updating...' : 'Update Credentials'}
+                    {loading ? 'Updating...' : 'Update Contact Information'}
                 </button>
-                <div className="mt-4">
-                    {status.success && (
-                        <p className="text-green-500">{status.message}</p>
-                    )}
-                    {!status.success && status.message && (
-                        <p className="text-red-500">{status.message}</p>
-                    )}
-                </div>
+                
+                {status.message && (
+                    <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        {status.message}
+                    </div>
+                )}
             </form>
+
+            {/* Password Change Modal */}
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onPasswordUpdate={handlePasswordUpdate}
+            />
         </div>
     );
 }
