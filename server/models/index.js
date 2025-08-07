@@ -14,5 +14,6 @@ db.comments = require('./comments.js')(mongoose);
 db.invitations = require('./invitations.js')(mongoose);
 db.tasks = require('./tasks.js')(mongoose);
 db.users = require('./users.js')(mongoose);
+db.code_tokens = require('./codeToken.js')(mongoose);
 
 module.exports = db;

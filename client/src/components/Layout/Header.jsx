@@ -88,7 +88,7 @@ function Header({ isAuthenticated = false }) {
 
                         {/* Mobile Menu Toggle */}
                         <button
-                            className="md:hidden flex items-center justify-center"
+                            className="md:hidden flex items-center justify-center cursor-pointer"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             aria-label="Toggle menu"
                         >
@@ -147,7 +147,7 @@ function Header({ isAuthenticated = false }) {
                                         >
                                             Login
                                         </Link>
-                                        <Link 
+                                        <Link
                                             to="/register"
                                             className="w-full text-left px-4 py-2 bg-[var(--color-primary)] text-gray-800 rounded-md hover:bg-[var(--color-highlight)] transition-colors"
                                             onClick={() => setMobileMenuOpen(false)}
@@ -164,7 +164,7 @@ function Header({ isAuthenticated = false }) {
                                         >
                                             Profile
                                         </Link>
-                                        <Link 
+                                        <Link
                                             to="/logout"
                                             className="w-full text-left px-4 py-2 bg-[var(--color-primary)] text-gray-800 rounded-md hover:bg-[var(--color-highlight)] transition-colors"
                                             onClick={() => setMobileMenuOpen(false)}

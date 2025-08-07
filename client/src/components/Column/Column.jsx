@@ -1,14 +1,75 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { columnService } from '../../services/columnService';
 import AddTaskModal from '../Task/AddTaskModal.jsx';
 import Task from '../Task/Task.jsx';
+import { useDrag, useDrop, DragPreviewImage } from 'react-dnd';
+import { getEmptyImage } from "react-dnd-html5-backend";
 
-function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
+const COLUMN_TYPE = 'COLUMN';
+
+function Column({
+    column,
+    index,
+    isSkeleton = false,
+    setLastDraggedColumn,
+    onColumnUpdated,
+    onColumnDeleted,
+    onMoveColumn
+}) {
     const [isEditingName, setIsEditingName] = useState(false);
     const [columnName, setColumnName] = useState(column.name);
     const [loading, setLoading] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+    const [{ isDragging }, dragRef, previewRef] = useDrag({
+        type: COLUMN_TYPE,
+        item: { index },
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging()
+        }),
+        end: (item, monitor) => {
+            setLastDraggedColumn(null);
+        }
+    });
+    const ref = useRef(null);
+    const [_, dropRef] = useDrop({
+        accept: COLUMN_TYPE,
+        hover: (item, monitor) => {
+            if (!ref.current) return;
+
+            const dragIndex = item.index;
+            const hoverIndex = index;
+            if (dragIndex === hoverIndex) return;
+
+            const hoverRect = ref.current.getBoundingClientRect();
+            const hoverMiddleX = (hoverRect.right - hoverRect.left) / 2;
+            const clientOffset = monitor.getClientOffset();
+            const hoverClientX = clientOffset.x - hoverRect.left;
+
+            // Only move when the mouse crosses the middle of the target
+            if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
+            if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
+
+            onMoveColumn(dragIndex, hoverIndex);
+            item.index = hoverIndex;
+        },
+        drop: (item) => {
+            console.log('Column dropped:', item.index, 'to', index);
+            setLastDraggedColumn(null);
+        }
+    });
+    dragRef(dropRef(ref));
+
+    // Hide default preview and use custom one
+    useEffect(() => {
+        previewRef(getEmptyImage(), { captureDraggingState: true });
+    }, [previewRef]);
+
+    useEffect(() => {
+        if (isDragging) {
+            setLastDraggedColumn(column);
+        }
+    }, [isDragging, column, setLastDraggedColumn]);
 
     const handleNameEdit = async () => {
         if (!columnName.trim() || columnName === column.name) {
@@ -19,14 +80,17 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
 
         try {
             setLoading(true);
+            setIsEditingName(false);
             const response = await columnService.updateColumn(column._id, {
                 name: columnName.trim()
             });
 
+            const newColumn = response.data;
+            newColumn.tasks = column.tasks; // Preserve tasks
+
             if (onColumnUpdated) {
-                onColumnUpdated(response.data);
+                onColumnUpdated(newColumn);
             }
-            setIsEditingName(false);
         } catch (error) {
             console.error('Error updating column name:', error);
             setColumnName(column.name); // Revert on error
@@ -48,7 +112,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
         try {
             setLoading(true);
             const response = await columnService.toggleColumnLock(column._id, !column.isLocked);
-            
+
             if (onColumnUpdated) {
                 onColumnUpdated(response.data);
             }
@@ -67,13 +131,12 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
 
         try {
             setLoading(true);
-            await columnService.deleteColumn(column._id, {
-                action: 'delete' // or 'move' - for now we'll just delete tasks
-            });
-
             if (onColumnDeleted) {
                 onColumnDeleted(column._id);
             }
+            await columnService.deleteColumn(column._id, {
+                action: 'delete-tasks' // or 'move' - for now we'll just delete tasks
+            });
         } catch (error) {
             console.error('Error deleting column:', error);
         } finally {
@@ -101,7 +164,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
         if (onColumnUpdated) {
             const updatedColumn = {
                 ...column,
-                tasks: column.tasks.map(task => 
+                tasks: column.tasks.map(task =>
                     task._id === updatedTask._id ? updatedTask : task
                 )
             };
@@ -125,8 +188,11 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
     };
 
     return (
-        <div className="flex-shrink-0 w-80">
-            <div className="bg-white rounded-lg shadow-sm border">
+        <div
+            ref={ref}
+            className={`relative flex-shrink-0 w-72 mr-4 ${isDragging || (isSkeleton) ? 'opacity-10' : ''}`}
+        >
+            <div className="bg-white rounded-lg shadow-lg border border-gray-300">
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between mb-2">
@@ -135,7 +201,10 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                             <input
                                 type="text"
                                 value={columnName}
-                                onChange={(e) => setColumnName(e.target.value)}
+                                onChange={(e) => {
+                                    e.preventDefault();
+                                    setColumnName(e.target.value);
+                                }}
                                 onBlur={handleNameEdit}
                                 onKeyDown={handleKeyPress}
                                 className="flex-1 text-lg font-semibold bg-transparent border-b-2 border-blue-500 focus:outline-none"
@@ -144,12 +213,12 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                                 maxLength={50}
                             />
                         ) : (
-                            <h3 
+                            <h3
                                 className="flex-1 text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
                                 onClick={() => !column.isLocked && setIsEditingName(true)}
                                 title={column.isLocked ? 'Column is locked' : 'Click to edit name'}
                             >
-                                {column.name}
+                                {columnName}
                             </h3>
                         )}
 
@@ -157,7 +226,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                         <div className="relative">
                             <button
                                 onClick={() => setShowMenu(!showMenu)}
-                                className="p-1 rounded hover:bg-gray-100 transition-colors"
+                                className="p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer"
                                 disabled={loading}
                             >
                                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,11 +236,11 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
 
                             {/* Dropdown Menu */}
                             {showMenu && (
-                                <div className="absolute right-0 top-8 w-48 bg-white rounded-md shadow-lg border z-10">
+                                <div className="absolute right-0 top-8 w-48 bg-white rounded-md shadow-lg border border-gray-300 z-10">
                                     <div className="py-1">
                                         <button
                                             onClick={handleToggleLock}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="flex items-center cursor-pointer w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             disabled={loading}
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +250,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                                         </button>
                                         <button
                                             onClick={handleDeleteColumn}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                            className="flex items-center cursor-pointer w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                             disabled={loading}
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,8 +283,8 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                     <div className="space-y-3 min-h-[200px]">
                         {column.tasks && column.tasks.length > 0 ? (
                             column.tasks.map((task) => (
-                                <Task 
-                                    key={task._id} 
+                                <Task
+                                    key={task._id}
                                     task={task}
                                     onTaskUpdated={handleTaskUpdated}
                                     onTaskDeleted={handleTaskDeleted}
@@ -250,14 +319,14 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
 
             {/* Click outside to close menu */}
             {showMenu && (
-                <div 
-                    className="fixed inset-0 z-0" 
+                <div
+                    className="fixed inset-0 z-0"
                     onClick={() => setShowMenu(false)}
                 />
             )}
 
             {/* Add Task Modal */}
-            <AddTaskModal 
+            <AddTaskModal
                 isOpen={showAddTaskModal}
                 onClose={() => setShowAddTaskModal(false)}
                 columnId={column._id}

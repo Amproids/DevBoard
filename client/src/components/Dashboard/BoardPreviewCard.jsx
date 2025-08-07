@@ -26,24 +26,24 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
 
     const handleFavoriteToggle = async (e) => {
         e.stopPropagation(); // Prevent card click when clicking favorite
-        
+
         try {
             setIsUpdating(true);
             const newFavoriteStatus = !isFavorite;
-            
+
             // Optimistic update
             setIsFavorite(newFavoriteStatus);
-            
+
             // Call API
             const response = await boardService.updateBoard(board._id, {
                 isFavorite: newFavoriteStatus
             });
-            
+
             // Notify parent component if needed
             if (onBoardUpdated) {
                 onBoardUpdated(response.data);
             }
-            
+
         } catch (error) {
             // Revert optimistic update on error
             setIsFavorite(!isFavorite);
@@ -58,7 +58,7 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
     };
 
     return (
-        <div 
+        <div
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 relative"
             onClick={handleCardClick}
         >
@@ -66,33 +66,31 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
             <button
                 onClick={handleFavoriteToggle}
                 disabled={isUpdating}
-                className={`absolute top-4 right-4 p-1 rounded-full transition-colors ${
-                    isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
-                }`}
+                className={`absolute cursor-pointer top-4 right-4 p-1 rounded-full transition-colors ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'
+                    }`}
                 title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
-                <svg 
-                    className={`w-5 h-5 transition-colors ${
-                        isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 hover:text-red-500'
-                    }`} 
-                    fill={isFavorite ? 'currentColor' : 'none'} 
-                    stroke="currentColor" 
+                <svg
+                    className={`w-5 h-5 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 hover:text-red-500'
+                        }`}
+                    fill={isFavorite ? 'currentColor' : 'none'}
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
-                    <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                     />
                 </svg>
             </button>
 
             {/* Board Header */}
             <div className="mb-3 pr-8">{/* Add right padding to avoid favorite button */}
-                <h3 className="text-xl font-semibold text-gray-900 mb-1 line-clamp-1">
+                <h2 className="text-xl font-semibold text-gray-900 mb-1 line-clamp-1">
                     {board.name}
-                </h3>
+                </h2>
                 {board.description && (
                     <p className="text-gray-600 text-sm line-clamp-2">
                         {board.description}
@@ -105,7 +103,7 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
                 <div className="mb-3">
                     <div className="flex flex-wrap gap-1">
                         {board.tags.slice(0, 3).map((tag, index) => (
-                            <span 
+                            <span
                                 key={index}
                                 className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
                             >
@@ -130,7 +128,7 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
                         </svg>
                         <span>{getMemberCount()} members</span>
                     </div>
-                    
+
                     {board.lockedColumns && (
                         <div className="flex items-center">
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,8 +149,15 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
                     <span>by {getOwnerName()}</span>
                 </div>
             </div>
+            <div>
+                <span className="text-xs text-gray-400">
+                    Last updated {formatDate(board.updatedAt)}
+                </span>
+            </div>
         </div>
     );
 }
+
+// Edit board: As a user, I want to rename, change tags, and even delete boards so that I can keep them organized.
 
 export default BoardPreviewCard;

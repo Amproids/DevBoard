@@ -121,11 +121,11 @@ const validateGetBoardsInput = data => {
                     'Filter must be either "all", "favorites" or "owned"'
             }),
         sort: Joi.string()
-            .valid('name', '-name', 'createdAt', '-createdAt')
+            .valid('name', '-name', 'createdAt', '-createdAt', '-updatedAt')
             .default('-createdAt')
             .messages({
                 'any.only':
-                    'Sort must be either "name", "-name", "createdAt" or "-createdAt"'
+                    'Sort must be either "name", "-name", "createdAt", "-createdAt" or "-updatedAt"'
             }),
         search: Joi.string().allow('').optional()
     });
