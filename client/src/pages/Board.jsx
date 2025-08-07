@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams, useNavigate } from 'react-router-dom';
 import { boardService } from '../services/boardService';
 import AddColumnModal from '../components/Column/AddColumnModal.jsx';
@@ -8,12 +10,14 @@ import BoardMetaInfo from '../components/Board/BoardMetaInfo.jsx';
 import BackToDashboard from '../components/Board/BackToDashboard.jsx';
 import EditBoardModal from '../components/Board/EditBoardModal.jsx';
 import RemoveBoardModal from '../components/Board/RemoveBoardModal.jsx';
+import ColumnDragLayer from '../components/Column/ColumnDragLayer.jsx';
 
 function Board() {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [board, setBoard] = useState(null);
+    const [lastDraggedColumn, setLastDraggedColumn] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [showAddColumnModal, setShowAddColumnModal] = useState(false);
@@ -31,7 +35,6 @@ function Board() {
             setBoard(response.data);
         } catch (error) {
             setError(true);
-            console.error('Error fetching board:', error);
 
             // If board not found or no permission, redirect to dashboard
             if (error.response?.status === 404 || error.response?.status === 403) {
@@ -49,7 +52,8 @@ function Board() {
     }, [id]);
 
     const handleBoardUpdate = (updatedBoard) => {
-        setBoard(updatedBoard);
+        const newBoard = { ...board, ...updatedBoard };
+        setBoard(newBoard);
     };
 
     const handleAddColumn = () => {
@@ -68,9 +72,16 @@ function Board() {
         // Update the column in the board
         setBoard(prev => ({
             ...prev,
-            columns: prev.columns.map(col =>
-                col._id === updatedColumn._id ? updatedColumn : col
-            )
+            columns: prev.columns.map(col => {
+                if (col._id === updatedColumn._id) {
+                    return {
+                        ...col,
+                        ...updatedColumn,
+                        tasks: col.tasks
+                    };
+                }
+                return col;
+            })
         }));
     };
 
@@ -80,6 +91,17 @@ function Board() {
             ...prev,
             columns: prev.columns.filter(col => col._id !== deletedColumnId)
         }));
+    };
+
+    // move the column to a new position
+    const handleMoveColumn = (fromIndex, toIndex) => {
+        console.log(board.columns);
+        setBoard(prev => {
+            const columns = [...prev.columns];
+            const [moved] = columns.splice(fromIndex, 1);
+            columns.splice(toIndex, 0, moved);
+            return { ...prev, columns };
+        });
     };
 
     const handleBackToDashboard = () => {
@@ -205,38 +227,52 @@ function Board() {
                     </div>
 
                     {/* Board Content Area */}
-                    <div className="container mx-auto px-4 py-6">
-                        {/* Columns Container */}
-                        <div className="flex gap-6 overflow-x-auto min-h-96">
-                            {board.columns && board.columns.length > 0 ? (
-                                board.columns.map((column) => (
-                                    <Column
-                                        key={column._id}
-                                        column={column}
-                                        boardId={id}
-                                        onColumnUpdated={handleColumnUpdated}
-                                        onColumnDeleted={handleColumnDeleted}
-                                    />
-                                ))
-                            ) : (
-                                /* Empty State for Columns */
-                                <div className="flex-1 flex items-center justify-center py-12">
-                                    <div className="text-center">
-                                        <div className="text-gray-400 mb-4">
-                                            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                            </svg>
+                    <DndProvider backend={HTML5Backend}>
+                        <div className="container mx-auto px-4 py-6">
+                            {/* Drag Preview Layer */}
+                            <ColumnDragLayer
+                                columns={board.columns}
+                                boardId={id}
+                                onColumnUpdated={handleColumnUpdated}
+                                onColumnDeleted={handleColumnDeleted}
+                                onMoveColumn={handleMoveColumn}
+                            />
+                            {/* Columns Container */}
+                            <div className="flex gap-6 overflow-x-auto min-h-96">
+                                {board.columns && board.columns.length > 0 ? (
+                                    board.columns.map((column, index) => (
+                                        <Column
+                                            key={column._id}
+                                            column={column}
+                                            boardId={id}
+                                            isSkeleton={lastDraggedColumn?._id === column._id}
+                                            index={index}
+                                            onMoveColumn={handleMoveColumn}
+                                            onColumnUpdated={handleColumnUpdated}
+                                            onColumnDeleted={handleColumnDeleted}
+                                            setLastDraggedColumn={setLastDraggedColumn}
+                                        />
+                                    ))
+                                ) : (
+                                    /* Empty State for Columns */
+                                    <div className="flex-1 flex items-center justify-center py-12">
+                                        <div className="text-center">
+                                            <div className="text-gray-400 mb-4">
+                                                <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
+                                            <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
+                                            <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                                                Add First Column
+                                            </button>
                                         </div>
-                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
-                                        <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
-                                        <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                                            Add First Column
-                                        </button>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    </DndProvider>
                 </>
             )}
             {/* Edit Board Modal*/}

@@ -66,7 +66,7 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
             <button
                 onClick={handleFavoriteToggle}
                 disabled={isUpdating}
-                className={`absolute top-4 right-4 p-1 rounded-full transition-colors ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                className={`absolute cursor-pointer top-4 right-4 p-1 rounded-full transition-colors ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'
                     }`}
                 title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >

@@ -67,7 +67,7 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
                     <h2 className="text-xl font-semibold">Add New Column</h2>
                     <button
                         onClick={handleClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 cursor-pointer hover:text-gray-700"
                         disabled={loading}
                     >
                         ✕
@@ -116,14 +116,14 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                            className="px-4 py-2 text-gray-600 cursor-pointer border border-gray-300 rounded-md hover:bg-gray-50"
                             disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            className="px-4 py-2 bg-blue-600 cursor-pointer text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                             disabled={loading || !formData.name.trim()}
                         >
                             {loading ? 'Creating...' : 'Create Column'}
