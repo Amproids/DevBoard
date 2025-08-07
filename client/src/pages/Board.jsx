@@ -72,16 +72,7 @@ function Board() {
         // Update the column in the board
         setBoard(prev => ({
             ...prev,
-            columns: prev.columns.map(col => {
-                if (col._id === updatedColumn._id) {
-                    return {
-                        ...col,
-                        ...updatedColumn,
-                        tasks: col.tasks
-                    };
-                }
-                return col;
-            })
+            columns: prev.columns.map(col => col._id === updatedColumn._id ? updatedColumn : col)
         }));
     };
 
@@ -95,7 +86,6 @@ function Board() {
 
     // move the column to a new position
     const handleMoveColumn = (fromIndex, toIndex) => {
-        console.log(board.columns);
         setBoard(prev => {
             const columns = [...prev.columns];
             const [moved] = columns.splice(fromIndex, 1);

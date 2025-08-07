@@ -85,8 +85,11 @@ function Column({
                 name: columnName.trim()
             });
 
+            const newColumn = response.data;
+            newColumn.tasks = column.tasks; // Preserve tasks
+
             if (onColumnUpdated) {
-                onColumnUpdated(response.data);
+                onColumnUpdated(newColumn);
             }
         } catch (error) {
             console.error('Error updating column name:', error);
