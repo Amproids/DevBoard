@@ -96,6 +96,14 @@ function Board() {
         setDraggedColumn({ column, index });
         e.dataTransfer.effectAllowed = 'move';
         
+        // Set column drag data with type identifier
+        const dragData = {
+            type: 'COLUMN_DRAG',
+            columnId: column._id,
+            columnIndex: index
+        };
+        e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+        
         // Find the entire column wrapper and apply opacity
         const columnWrapper = e.target.closest('.column-wrapper');
         if (columnWrapper) {

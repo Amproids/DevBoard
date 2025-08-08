@@ -170,14 +170,23 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         }
     };
 
-    const handleTaskDrop = async (e, dropIndex) => {
+    const handleTaskDrop = async (e, dropIndex = null) => {
         e.preventDefault();
         e.stopPropagation();
         
         if (column.isLocked) return;
         
+        // If dropIndex is null, we're dropping on empty column area (index 0)
+        const actualDropIndex = dropIndex !== null ? dropIndex : 0;
+        
+        // If column has tasks but dropIndex is null, ignore (shouldn't happen with proper event handling)
+        if (dropIndex === null && column.tasks && column.tasks.length > 0) return;
+        
         try {
-            const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
+            const rawData = e.dataTransfer.getData('application/json');
+            if (!rawData || rawData.trim() === '') return;
+            
+            const dragData = JSON.parse(rawData);
             const { taskId, task, sourceColumnId, sourceIndex } = dragData;
             
             // DEBUG: Log initial state
@@ -185,13 +194,22 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
             console.log('Source Column ID:', sourceColumnId);
             console.log('Target Column ID:', column._id);
             console.log('Source Index:', sourceIndex);
-            console.log('Drop Index:', dropIndex);
+            console.log('Drop Index:', actualDropIndex);
             console.log('Same Column?', sourceColumnId === column._id);
-            console.log('Current column tasks:', column.tasks.map(t => ({id: t._id, title: t.title})));
+            console.log('Is Empty Column Drop?', dropIndex === null);
+            console.log('Current column tasks:', column.tasks?.map(t => ({id: t._id, title: t.title})) || []);
             
             // If dropping in the same column and same position, do nothing
-            if (sourceColumnId === column._id && sourceIndex === dropIndex) {
+            if (sourceColumnId === column._id && sourceIndex === actualDropIndex) {
                 console.log('SAME POSITION - ABORTING');
+                setDraggedOverTaskIndex(null);
+                setIsDraggedOver(false);
+                return;
+            }
+            
+            // Special case: dropping in same empty column
+            if (sourceColumnId === column._id && dropIndex === null) {
+                console.log('SAME EMPTY COLUMN - ABORTING');
                 setDraggedOverTaskIndex(null);
                 setIsDraggedOver(false);
                 return;
@@ -200,7 +218,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
             // Prepare the move data
             const moveData = {
                 targetColumnId: column._id,
-                newOrder: dropIndex
+                newOrder: actualDropIndex
             };
             
             // DEBUG: Log what we're sending to backend
@@ -220,15 +238,15 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                 console.log('After removal:', newTasks.map(t => t.title));
                 
                 // Adjust drop index if moving down within the same column
-                const adjustedDropIndex = dropIndex > sourceIndex ? dropIndex - 1 : dropIndex;
+                const adjustedDropIndex = actualDropIndex > sourceIndex ? actualDropIndex - 1 : actualDropIndex;
                 newTasks.splice(adjustedDropIndex, 0, task);
                 console.log('After insertion:', newTasks.map(t => t.title));
             } else {
                 // Moving from different column, just insert at drop position
                 console.log('CROSS COLUMN MOVE');
-                console.log('Target column tasks before:', column.tasks.map(t => t.title));
+                console.log('Target column tasks before:', currentTasks.map(t => t.title));
                 
-                newTasks.splice(dropIndex, 0, task);
+                newTasks.splice(actualDropIndex, 0, task);
                 
                 console.log('Target column tasks after:', newTasks.map(t => t.title));
             }
@@ -272,64 +290,6 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         }
     };
 
-    const handleEmptyColumnDrop = async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (column.isLocked) return;
-        
-        // Only handle drop if there are no tasks
-        if (column.tasks && column.tasks.length > 0) return;
-        
-        try {
-            const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
-            const { taskId, task, sourceColumnId } = dragData;
-            
-            // If dropping in the same empty column, do nothing
-            if (sourceColumnId === column._id) {
-                setIsDraggedOver(false);
-                return;
-            }
-            
-            // Prepare the move data
-            const moveData = {
-                targetColumnId: column._id,
-                newOrder: 0
-            };
-            
-            // Optimistically update UI
-            const updatedColumn = { ...column, tasks: [task] };
-            onColumnUpdated(updatedColumn);
-            
-            // Also update the source column if we have access to all columns
-            if (onAllColumnsUpdated && allColumns) {
-                const updatedColumns = allColumns.map(col => {
-                    if (col._id === sourceColumnId) {
-                        return {
-                            ...col,
-                            tasks: col.tasks.filter(t => t._id !== taskId)
-                        };
-                    } else if (col._id === column._id) {
-                        return updatedColumn;
-                    }
-                    return col;
-                });
-                onAllColumnsUpdated(updatedColumns);
-            }
-            
-            // Call API to persist the move
-            await taskService.moveTask(taskId, moveData);
-            
-        } catch (error) {
-            console.error('Error moving task to empty column:', error);
-            alert('Failed to move task. Please try again.');
-            // Refresh to revert the optimistic update
-            window.location.reload();
-        } finally {
-            setIsDraggedOver(false);
-        }
-    };
-
     const getTaskCount = () => column.tasks ? column.tasks.length : 0;
 
     // Drag handlers for the column header
@@ -360,7 +320,6 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                 }`}
                 onDragOver={handleColumnDragOver}
                 onDragLeave={handleColumnDragLeave}
-                onDrop={handleEmptyColumnDrop}
             >
                 {/* Column Header - DRAGGABLE AREA */}
                 <div 
@@ -493,6 +452,8 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                                 className={`text-center py-8 text-gray-500 ${
                                     isDraggedOver && !column.isLocked ? 'opacity-50' : ''
                                 }`}
+                                onDrop={(e) => handleTaskDrop(e)}
+                                onDragOver={(e) => e.preventDefault()}
                             >
                                 <p className="text-sm">
                                     {isDraggedOver && !column.isLocked ? 'Drop task here' : 'No tasks yet'}
