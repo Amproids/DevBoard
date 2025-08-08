@@ -20,6 +20,10 @@ function Board() {
     const [showEditBoardModal, setShowEditBoardModal] = useState(false);
     const [showRemoveBoardModal, setShowRemoveBoardModal] = useState(false);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+    
+    // Drag and drop state
+    const [draggedColumn, setDraggedColumn] = useState(null);
+    const [draggedOver, setDraggedOver] = useState(null);
 
     const fetchBoard = async () => {
         try {
@@ -79,16 +83,78 @@ function Board() {
         navigate('/dashboard');
     };
 
+    // Drag and drop handlers for columns
+    const handleColumnDragStart = (e, column, index) => {
+        setDraggedColumn({ column, index });
+        e.dataTransfer.effectAllowed = 'move';
+        // Keep the greyed out effect
+        e.target.style.opacity = '0.5';
+        // Prevent the drag image from causing scroll issues
+        const dragImage = new Image();
+        dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
+        e.dataTransfer.setDragImage(dragImage, 0, 0);
+    };
+
+    const handleColumnDragEnd = (e) => {
+        e.target.style.opacity = '1';
+        setDraggedColumn(null);
+        setDraggedOver(null);
+    };
+
+    const handleColumnDragOver = (e, index) => {
+        e.preventDefault();
+        setDraggedOver(index);
+    };
+
+    const handleColumnDragLeave = () => {
+        setDraggedOver(null);
+    };
+
+    const handleColumnDrop = async (e, dropIndex) => {
+        e.preventDefault();
+        
+        if (draggedColumn && draggedColumn.index !== dropIndex) {
+            const newColumns = [...board.columns];
+            const draggedItem = newColumns[draggedColumn.index];
+            
+            // Remove the dragged item
+            newColumns.splice(draggedColumn.index, 1);
+            
+            // Insert at new position
+            newColumns.splice(dropIndex, 0, draggedItem);
+            
+            // Update board state immediately for UI responsiveness
+            setBoard(prev => ({
+                ...prev,
+                columns: newColumns
+            }));
+
+            // Optional: Save the new order to the backend
+            try {
+                // You'll need to implement this endpoint in your boardService
+                // await boardService.updateColumnOrder(id, newColumns.map(col => col._id));
+                console.log('Column order updated:', newColumns.map(col => col._id));
+            } catch (error) {
+                console.error('Error updating column order:', error);
+                // Revert on error
+                fetchBoard();
+            }
+        }
+        
+        setDraggedOver(null);
+        setDraggedColumn(null);
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="flex flex-col min-h-screen bg-gray-50">
             {loading && (
-                <div className="flex justify-center items-center h-screen">
+                <div className="flex justify-center items-center flex-1">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
                 </div>
             )}
 
             {error && (
-                <div className="flex justify-center items-center h-screen">
+                <div className="flex justify-center items-center flex-1">
                     <div className="text-center">
                         <div className="text-red-500 mb-4">
                             <svg className="mx-auto h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,8 +175,8 @@ function Board() {
 
             {!loading && !error && board && (
                 <>
-                    {/* Header */}
-                    <div className="bg-white shadow-sm border-b">
+                    {/* Header - Fixed height to prevent layout shifts */}
+                    <div className="bg-white shadow-sm border-b flex-shrink-0">
                         <div className="container mx-auto px-4 py-4">
                             <BackToDashboard handleBackToDashboard={handleBackToDashboard} />
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -178,38 +244,56 @@ function Board() {
                         </div>
                     </div>
 
-                    {/* Columns */}
-                    <div className="container mx-auto px-4 py-6">
-                        <div className="flex gap-6 overflow-x-auto min-h-96">
-                            {board.columns && board.columns.length > 0 ? (
-                                board.columns.map((column) => (
-                                    <Column
-                                        key={column._id}
-                                        column={column}
-                                        boardId={id}
-                                        onColumnUpdated={handleColumnUpdated}
-                                        onColumnDeleted={handleColumnDeleted}
-                                    />
-                                ))
-                            ) : (
-                                <div className="flex-1 flex items-center justify-center py-12">
-                                    <div className="text-center">
-                                        <div className="text-gray-400 mb-4">
-                                            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                            </svg>
+                    {/* Columns Container - Takes remaining space */}
+                    <div className="flex-1 overflow-hidden">
+                        <div className="h-full">
+                            <div className="container mx-auto px-6 py-8 h-full">
+                                <div className="flex gap-8 overflow-x-auto h-full pb-4">
+                                    {board.columns && board.columns.length > 0 ? (
+                                        board.columns.map((column, index) => (
+                                            <div
+                                                key={column._id}
+                                                draggable
+                                                onDragStart={(e) => handleColumnDragStart(e, column, index)}
+                                                onDragEnd={handleColumnDragEnd}
+                                                onDragOver={(e) => handleColumnDragOver(e, index)}
+                                                onDragLeave={handleColumnDragLeave}
+                                                onDrop={(e) => handleColumnDrop(e, index)}
+                                                className={`
+                                                    flex-shrink-0 w-80 h-full
+                                                    transition-all duration-200 cursor-move
+                                                    ${draggedOver === index ? 'transform scale-[1.02] bg-blue-50/50 rounded-lg shadow-lg' : ''}
+                                                `}
+                                            >
+                                                <Column
+                                                    column={column}
+                                                    boardId={id}
+                                                    onColumnUpdated={handleColumnUpdated}
+                                                    onColumnDeleted={handleColumnDeleted}
+                                                />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="flex-1 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <div className="text-gray-400 mb-4">
+                                                    <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                    </svg>
+                                                </div>
+                                                <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
+                                                <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
+                                                <button 
+                                                    onClick={handleAddColumn}
+                                                    className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                                                >
+                                                    Add First Column
+                                                </button>
+                                            </div>
                                         </div>
-                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
-                                        <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
-                                        <button 
-                                            onClick={handleAddColumn}
-                                            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
-                                        >
-                                            Add First Column
-                                        </button>
-                                    </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </>
