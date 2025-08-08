@@ -3,7 +3,7 @@ import { columnService } from '../../services/columnService';
 import AddTaskModal from '../Task/AddTaskModal.jsx';
 import Task from '../Task/Task.jsx';
 
-function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
+function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex, onColumnDragStart, onColumnDragEnd }) {
     const [isEditingName, setIsEditingName] = useState(false);
     const [columnName, setColumnName] = useState(column.name);
     const [loading, setLoading] = useState(false);
@@ -103,11 +103,38 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
 
     const getTaskCount = () => column.tasks ? column.tasks.length : 0;
 
+    // Drag handlers for the header
+    const handleDragStart = (e) => {
+        if (isEditingName) {
+            e.preventDefault();
+            return false;
+        }
+        
+        if (onColumnDragStart) {
+            onColumnDragStart(e);
+        }
+    };
+
+    const handleDragEnd = (e) => {
+        if (onColumnDragEnd) {
+            onColumnDragEnd(e);
+        }
+    };
+
     return (
         <div className="flex-shrink-0 w-80">
             <div className="bg-white rounded-lg shadow-sm border">
-                {/* Column Header */}
-                <div className="p-4 border-b border-gray-200">
+                {/* Column Header - DRAGGABLE AREA */}
+                <div 
+                    className="p-4 border-b border-gray-200 select-none"
+                    draggable={!isEditingName}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    style={{ 
+                        cursor: isEditingName ? 'default' : 'move',
+                        userSelect: 'none'
+                    }}
+                >
                     <div className="flex items-center justify-between mb-2">
                         {isEditingName ? (
                             <input
@@ -116,10 +143,12 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                                 onChange={(e) => setColumnName(e.target.value)}
                                 onBlur={handleNameEdit}
                                 onKeyDown={handleKeyPress}
-                                className="flex-1 text-lg font-semibold bg-transparent border-b-2 border-blue-500 focus:outline-none"
+                                className="flex-1 text-lg font-semibold bg-transparent border-b-2 border-blue-500 focus:outline-none cursor-text"
                                 disabled={loading}
                                 autoFocus
                                 maxLength={50}
+                                draggable={false}
+                                onDragStart={(e) => e.preventDefault()}
                             />
                         ) : (
                             <h3
@@ -132,9 +161,14 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
 
                         <div className="relative">
                             <button
-                                onClick={() => setShowMenu(!showMenu)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowMenu(!showMenu);
+                                }}
                                 className="p-1 rounded hover:bg-gray-100"
                                 disabled={loading}
+                                onDragStart={(e) => e.preventDefault()}
+                                draggable={false}
                             >
                                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01" />
@@ -178,7 +212,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
                     </div>
                 </div>
 
-                {/* Tasks */}
+                {/* Tasks - NOT DRAGGABLE */}
                 <div className="p-4">
                     <div className="space-y-3 min-h-[200px]">
                         {column.tasks && column.tasks.length > 0 ? (

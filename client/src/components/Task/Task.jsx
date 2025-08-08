@@ -96,8 +96,23 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
     const dueDateInfo = task.dueDate ? formatDate(task.dueDate) : null;
     const isCompleted = task.completed || false;
 
+    // Prevent dragging events from bubbling up to parent (column)
+    const handleMouseDown = (e) => {
+        e.stopPropagation();
+    };
+
+    const handleDragStart = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     return (
-        <div className={`bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group ${isCompleted ? 'opacity-75' : ''}`}>
+        <div 
+            className={`bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group ${isCompleted ? 'opacity-75' : ''}`}
+            onMouseDown={handleMouseDown}
+            onDragStart={handleDragStart}
+            draggable={false}
+        >
             {/* Task Menu Button */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button

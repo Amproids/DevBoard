@@ -87,16 +87,26 @@ function Board() {
     const handleColumnDragStart = (e, column, index) => {
         setDraggedColumn({ column, index });
         e.dataTransfer.effectAllowed = 'move';
-        // Keep the greyed out effect
-        e.target.style.opacity = '0.5';
+        
+        // Find the entire column wrapper and apply opacity
+        const columnWrapper = e.target.closest('.column-wrapper');
+        if (columnWrapper) {
+            columnWrapper.style.opacity = '0.5';
+        }
+        
         // Prevent the drag image from causing scroll issues
         const dragImage = new Image();
         dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
         e.dataTransfer.setDragImage(dragImage, 0, 0);
     };
-
+    
     const handleColumnDragEnd = (e) => {
-        e.target.style.opacity = '1';
+        // Find the entire column wrapper and reset opacity
+        const columnWrapper = e.target.closest('.column-wrapper');
+        if (columnWrapper) {
+            columnWrapper.style.opacity = '1';
+        }
+        
         setDraggedColumn(null);
         setDraggedOver(null);
     };
@@ -250,23 +260,23 @@ function Board() {
                                         board.columns.map((column, index) => (
                                             <div
                                                 key={column._id}
-                                                draggable
-                                                onDragStart={(e) => handleColumnDragStart(e, column, index)}
-                                                onDragEnd={handleColumnDragEnd}
+                                                className={`
+                                                    column-wrapper flex-shrink-0 w-80 h-full
+                                                    transition-all duration-200
+                                                    ${draggedOver === index ? 'transform scale-[1.02] bg-blue-50/50 rounded-lg shadow-lg' : ''}
+                                                `}
                                                 onDragOver={(e) => handleColumnDragOver(e, index)}
                                                 onDragLeave={handleColumnDragLeave}
                                                 onDrop={(e) => handleColumnDrop(e, index)}
-                                                className={`
-                                                    flex-shrink-0 w-80 h-full
-                                                    transition-all duration-200 cursor-move
-                                                    ${draggedOver === index ? 'transform scale-[1.02] bg-blue-50/50 rounded-lg shadow-lg' : ''}
-                                                `}
                                             >
                                                 <Column
                                                     column={column}
                                                     boardId={id}
                                                     onColumnUpdated={handleColumnUpdated}
                                                     onColumnDeleted={handleColumnDeleted}
+                                                    columnIndex={index}
+                                                    onColumnDragStart={(e) => handleColumnDragStart(e, column, index)}
+                                                    onColumnDragEnd={handleColumnDragEnd}
                                                 />
                                             </div>
                                         ))
