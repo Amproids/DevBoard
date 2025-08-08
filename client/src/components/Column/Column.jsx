@@ -184,6 +184,16 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, index, move
                                             {column.isLocked ? 'Unlock Column' : 'Lock Column'}
                                         </button>
                                         <button
+                                            onClick={() => {
+                                                setIsEditingName(true);
+                                                setShowMenu(false);
+                                            }}
+                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            disabled={loading}
+                                        >
+                                            Rename Column
+                                        </button>
+                                        <button
                                             onClick={handleDeleteColumn}
                                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                             disabled={loading}
