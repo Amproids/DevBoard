@@ -10,10 +10,6 @@ module.exports = mongoose => {
                 ref: 'boards',
                 required: true
             },
-            order: {
-                type: Number,
-                required: true
-            },
             tasks: [
                 {
                     type: mongoose.Schema.Types.ObjectId,

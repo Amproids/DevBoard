@@ -74,6 +74,54 @@ const updateBoardController = async (req, res, next) => {
     }
 };
 
+const updateColumnOrderController = async (req, res, next) => {
+    try {
+        const { error } = boardValidator.validateColumnOrderInput(req.body);
+        if (error) {
+            const errorMessages = error.details
+                .map(detail => detail.message)
+                .join('; ');
+            throw createError(400, `Validation failed: ${errorMessages}`);
+        }
+
+        const userId = req.user.id;
+        const boardId = req.params.id;
+        const { columnIds } = req.body;
+
+        if (!userId) {
+            throw createError(401, 'Authentication required');
+        }
+
+        if (!boardId) {
+            throw createError(400, 'Board ID is required');
+        }
+
+        const updatedBoard = await boardService.updateColumnOrderService(
+            boardId,
+            columnIds,
+            userId
+        );
+
+        res.status(200).json({
+            success: true,
+            data: updatedBoard,
+            message: 'Column order updated successfully'
+        });
+    } catch (err) {
+        console.error('Error in updateColumnOrderController:', err.message);
+
+        if (
+            err.status === 400 ||
+            err.status === 403 ||
+            err.status === 404
+        ) {
+            next(err);
+        } else {
+            next(createError(500, 'Error updating column order'));
+        }
+    }
+};
+
 const deleteBoardController = async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -180,6 +228,7 @@ const getBoardController = async (req, res, next) => {
 module.exports = {
     createBoardController,
     updateBoardController,
+    updateColumnOrderController,
     deleteBoardController,
     getBoardsController,
     getBoardController

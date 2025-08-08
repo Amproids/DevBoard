@@ -329,6 +329,69 @@ router.post('/', ensureAuth, boardController.createBoardController);
 
 /**
  * @swagger
+ * /boards/{id}/column-order:
+ *   put:
+ *     tags: [Boards]
+ *     summary: Update column order for a board
+ *     description: |
+ *       Updates the order of columns in a board by reordering the columns array.
+ *       Only board members with appropriate permissions can reorder columns.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *         description: Board ID
+ *         example: "507f1f77bcf86cd799439011"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - columnIds
+ *             properties:
+ *               columnIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: objectId
+ *                 description: Array of column IDs in the new order
+ *                 example: ["col1_id", "col2_id", "col3_id"]
+ *     responses:
+ *       200:
+ *         description: Column order updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Column order updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/FullBoard'
+ *       400:
+ *         description: Invalid column IDs or board ID format
+ *       403:
+ *         description: No permission to modify this board
+ *       404:
+ *         description: Board not found
+ *       500:
+ *         description: Server error
+ */
+router.put('/:id/column-order', ensureAuth, boardController.updateColumnOrderController);
+
+/**
+ * @swagger
  * /boards/{id}:
  *   put:
  *     tags: [Boards]

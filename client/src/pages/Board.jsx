@@ -128,11 +128,10 @@ function Board() {
                 ...prev,
                 columns: newColumns
             }));
-
-            // Optional: Save the new order to the backend
+            
+            // Update column order
             try {
-                // You'll need to implement this endpoint in your boardService
-                // await boardService.updateColumnOrder(id, newColumns.map(col => col._id));
+                await boardService.updateColumnOrder(id, newColumns.map(col => col._id));
                 console.log('Column order updated:', newColumns.map(col => col._id));
             } catch (error) {
                 console.error('Error updating column order:', error);
