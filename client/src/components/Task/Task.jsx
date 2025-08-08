@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { taskService } from '../../services/taskService';
 
-function Task({ task, onTaskUpdated, onTaskDeleted }) {
+function Task({ task, onTaskUpdated, onTaskDeleted, onTaskDragStart, onTaskDragEnd, isDraggable = true }) {
     const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleTaskClick = () => {
+        // Don't open details if we're dragging
+        if (isDragging) return;
+        
         // TODO: Open task details modal
         console.log('Task clicked:', task.title);
     };
@@ -96,23 +100,67 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
     const dueDateInfo = task.dueDate ? formatDate(task.dueDate) : null;
     const isCompleted = task.completed || false;
 
-    // Prevent dragging events from bubbling up to parent (column)
-    const handleMouseDown = (e) => {
-        e.stopPropagation();
+    // Drag event handlers
+    const handleDragStart = (e) => {
+        // Don't allow dragging if not draggable
+        if (!isDraggable) {
+            e.preventDefault();
+            return;
+        }
+        
+        setIsDragging(true);
+        
+        // Call parent's drag start handler
+        if (onTaskDragStart) {
+            onTaskDragStart(e);
+        }
     };
 
-    const handleDragStart = (e) => {
+    const handleDragEnd = (e) => {
+        setIsDragging(false);
+        
+        // Call parent's drag end handler
+        if (onTaskDragEnd) {
+            onTaskDragEnd(e);
+        }
+    };
+
+    // Prevent drag events from bubbling to column when clicking interactive elements
+    const handleInteractiveDragStart = (e) => {
         e.preventDefault();
         e.stopPropagation();
     };
 
     return (
         <div 
-            className={`bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group ${isCompleted ? 'opacity-75' : ''}`}
-            onMouseDown={handleMouseDown}
+            className={`
+                bg-white border border-gray-200 rounded-lg p-3 
+                hover:shadow-md transition-all relative group 
+                ${isCompleted ? 'opacity-75' : ''}
+                ${isDraggable ? 'cursor-move' : 'cursor-pointer'}
+                ${isDragging ? 'opacity-50 rotate-1 scale-105' : ''}
+            `}
+            draggable={isDraggable}
             onDragStart={handleDragStart}
-            draggable={false}
+            onDragEnd={handleDragEnd}
+            onClick={handleTaskClick}
         >
+            {/* Drag Handle Indicator - only show when draggable */}
+            {isDraggable && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition-opacity">
+                    <svg className="w-3 h-5 text-gray-400" fill="currentColor" viewBox="0 0 8 20">
+                        <circle cx="2" cy="2" r="1.5"/>
+                        <circle cx="6" cy="2" r="1.5"/>
+                        <circle cx="2" cy="7" r="1.5"/>
+                        <circle cx="6" cy="7" r="1.5"/>
+                        <circle cx="2" cy="12" r="1.5"/>
+                        <circle cx="6" cy="12" r="1.5"/>
+                        <circle cx="2" cy="17" r="1.5"/>
+                        <circle cx="6" cy="17" r="1.5"/>
+                    </svg>
+                </div>
+            )}
+
             {/* Task Menu Button */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -120,6 +168,7 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
                         e.stopPropagation();
                         setShowMenu(!showMenu);
                     }}
+                    onDragStart={handleInteractiveDragStart}
                     className="p-1 rounded hover:bg-gray-100 transition-colors"
                     disabled={loading}
                 >
@@ -155,7 +204,7 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
                                 disabled={loading}
                             >
                                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0016.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 Delete
                             </button>
@@ -165,13 +214,15 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
             </div>
 
             {/* Task Content */}
-            <div onClick={handleTaskClick} className="pr-6">
+            <div className="pr-6">
                 {/* Checkbox and Task Title */}
                 <div className="mb-2 flex items-start gap-3">
                     <input
                         type="checkbox"
                         checked={isCompleted}
                         onChange={handleCheckboxChange}
+                        onClick={(e) => e.stopPropagation()}
+                        onDragStart={handleInteractiveDragStart}
                         disabled={loading}
                         className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                     />

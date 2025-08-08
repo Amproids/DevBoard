@@ -21,7 +21,7 @@ function Board() {
     const [showRemoveBoardModal, setShowRemoveBoardModal] = useState(false);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
     
-    // Drag and drop state
+    // Drag and drop state for columns
     const [draggedColumn, setDraggedColumn] = useState(null);
     const [draggedOver, setDraggedOver] = useState(null);
 
@@ -76,6 +76,14 @@ function Board() {
         setBoard(prev => ({
             ...prev,
             columns: prev.columns.filter(col => col._id !== deletedColumnId)
+        }));
+    };
+
+    // Handler for updating all columns at once (used for task moves between columns)
+    const handleAllColumnsUpdated = (updatedColumns) => {
+        setBoard(prev => ({
+            ...prev,
+            columns: updatedColumns
         }));
     };
 
@@ -277,6 +285,8 @@ function Board() {
                                                     columnIndex={index}
                                                     onColumnDragStart={(e) => handleColumnDragStart(e, column, index)}
                                                     onColumnDragEnd={handleColumnDragEnd}
+                                                    allColumns={board.columns}
+                                                    onAllColumnsUpdated={handleAllColumnsUpdated}
                                                 />
                                             </div>
                                         ))

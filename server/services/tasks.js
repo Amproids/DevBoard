@@ -327,8 +327,14 @@ const deleteTaskService = async (taskId, userId) => {
 const moveTaskService = async (taskId, moveData, userId) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-
+    
     try {
+        // At the start
+        console.log('=== MOVE TASK SERVICE START ===');
+        console.log('TaskId:', taskId);
+        console.log('Target Column:', moveData.targetColumnId);
+        console.log('New Order:', moveData.newOrder);
+        
         const task = await Tasks.findById(taskId)
             .populate({
                 path: 'column',
@@ -339,60 +345,77 @@ const moveTaskService = async (taskId, moveData, userId) => {
                 }
             })
             .session(session);
-
+            
         if (!task) throw createError(404, 'Task not found');
-
+        
+        // After finding the task
+        console.log('Current Column:', task.column._id);
+        console.log('Is same column?', task.column.equals(moveData.targetColumnId));
+        
         const currentBoard = task.column.board;
-
         const hasCurrentAccess =
             currentBoard.owner.equals(userId) ||
             currentBoard.members.some(m => m.user.equals(userId));
-
+            
         if (!hasCurrentAccess) {
             throw createError(403, 'No permission to move this task');
         }
-
+        
         const targetColumn = await Columns.findOne({
             _id: moveData.targetColumnId,
             board: currentBoard._id
         }).session(session);
-
+        
         if (!targetColumn) {
             throw createError(400, 'Target column not found in this board');
         }
-
-        const maxOrder = targetColumn.tasks.length;
+        
+        // Calculate max order after potential removal
+        const isMovingWithinSameColumn = task.column.equals(moveData.targetColumnId);
+        const maxOrder = isMovingWithinSameColumn ? targetColumn.tasks.length - 1 : targetColumn.tasks.length;
+        
         if (moveData.newOrder < 0 || moveData.newOrder > maxOrder) {
             throw createError(400, `Order must be between 0 and ${maxOrder}`);
         }
-
-        if (!task.column.equals(moveData.targetColumnId)) {
-            await Columns.updateOne(
-                { _id: task.column._id },
-                { $pull: { tasks: taskId } }
-            ).session(session);
-        }
-
+        
+        // ALWAYS remove from current column first (even if same column)
+        await Columns.updateOne(
+            { _id: task.column._id },
+            { $pull: { tasks: taskId } }
+        ).session(session);
+        
+        // After removing from current column
+        console.log('Removed task from column:', task.column._id);
+        
+        // Get the updated target column after removal
+        const targetCol = await Columns.findById(moveData.targetColumnId).session(session);
+        
+        // After getting the updated target column
+        console.log('Target column tasks before insert:', targetCol.tasks);
+        
+        const tasksArray = [...targetCol.tasks]; // Create a copy of the tasks array
+        
+        // Insert the task at the new position
+        tasksArray.splice(moveData.newOrder, 0, taskId);
+        
+        // After splicing
+        console.log('Target column tasks after insert:', tasksArray);
+        
+        // Update the column with the new ordered array
         await Columns.updateOne(
             { _id: moveData.targetColumnId },
-            {
-                $push: {
-                    tasks: {
-                        $each: [taskId],
-                        $position: moveData.newOrder
-                    }
-                }
-            }
+            { $set: { tasks: tasksArray } }
         ).session(session);
-
-        if (!task.column.equals(moveData.targetColumnId)) {
-            task.column = moveData.targetColumnId;
-        }
+        
+        task.column = moveData.targetColumnId;
         task.order = moveData.newOrder;
         await task.save({ session });
-
+        
         await session.commitTransaction();
-
+        
+        // Before returning
+        console.log('=== MOVE COMPLETE ===');
+        
         return {
             taskId: task._id,
             previousColumnId: task.column._id,
@@ -402,7 +425,6 @@ const moveTaskService = async (taskId, moveData, userId) => {
     } catch (err) {
         await session.abortTransaction();
         console.error('Error in moveTaskService:', err.message);
-
         if (err.name === 'CastError') {
             throw createError(400, 'Invalid ID format');
         }
