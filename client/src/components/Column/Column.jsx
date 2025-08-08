@@ -1,43 +1,14 @@
-import { useState, useRef } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
+import { useState } from 'react';
 import { columnService } from '../../services/columnService';
 import AddTaskModal from '../Task/AddTaskModal.jsx';
 import Task from '../Task/Task.jsx';
 
-const ITEM_TYPE = 'COLUMN';
-
-function Column({ column, boardId, onColumnUpdated, onColumnDeleted, index, moveColumn }) {
+function Column({ column, boardId, onColumnUpdated, onColumnDeleted }) {
     const [isEditingName, setIsEditingName] = useState(false);
     const [columnName, setColumnName] = useState(column.name);
     const [loading, setLoading] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-
-    const ref = useRef(null);
-
-    // Drag
-    const [{ isDragging }, drag] = useDrag({
-        type: ITEM_TYPE,
-        item: { index },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging(),
-        }),
-    });
-
-    // Drop
-    const [, drop] = useDrop({
-        accept: ITEM_TYPE,
-        hover: (item) => {
-            if (!ref.current) return;
-            const dragIndex = item.index;
-            const hoverIndex = index;
-            if (dragIndex === hoverIndex) return;
-            moveColumn(dragIndex, hoverIndex);
-            item.index = hoverIndex;
-        },
-    });
-
-    drag(drop(ref));
 
     const handleNameEdit = async () => {
         if (!columnName.trim() || columnName === column.name) {
@@ -133,11 +104,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, index, move
     const getTaskCount = () => column.tasks ? column.tasks.length : 0;
 
     return (
-        <div
-            ref={ref}
-            className="flex-shrink-0 w-80"
-            style={{ opacity: isDragging ? 0.5 : 1 }}
-        >
+        <div className="flex-shrink-0 w-80">
             <div className="bg-white rounded-lg shadow-sm border">
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200">

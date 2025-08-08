@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { boardService } from '../services/boardService';
 import AddColumnModal from '../components/Column/AddColumnModal.jsx';
 import Column from '../components/Column/Column.jsx';
@@ -79,16 +77,6 @@ function Board() {
 
     const handleBackToDashboard = () => {
         navigate('/dashboard');
-    };
-
-    // New: moveColumn for react-dnd
-    const moveColumn = (dragIndex, hoverIndex) => {
-        setBoard(prev => {
-            const updatedColumns = [...prev.columns];
-            const [removed] = updatedColumns.splice(dragIndex, 1);
-            updatedColumns.splice(hoverIndex, 0, removed);
-            return { ...prev, columns: updatedColumns };
-        });
     };
 
     return (
@@ -192,38 +180,37 @@ function Board() {
 
                     {/* Columns */}
                     <div className="container mx-auto px-4 py-6">
-                        <DndProvider backend={HTML5Backend}>
-                            <div className="flex gap-6 overflow-x-auto min-h-96">
-                                {board.columns && board.columns.length > 0 ? (
-                                    board.columns.map((column, index) => (
-                                        <Column
-                                            key={column._id}
-                                            column={column}
-                                            boardId={id}
-                                            index={index}
-                                            moveColumn={moveColumn}
-                                            onColumnUpdated={handleColumnUpdated}
-                                            onColumnDeleted={handleColumnDeleted}
-                                        />
-                                    ))
-                                ) : (
-                                    <div className="flex-1 flex items-center justify-center py-12">
-                                        <div className="text-center">
-                                            <div className="text-gray-400 mb-4">
-                                                <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                                </svg>
-                                            </div>
-                                            <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
-                                            <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
-                                            <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                                                Add First Column
-                                            </button>
+                        <div className="flex gap-6 overflow-x-auto min-h-96">
+                            {board.columns && board.columns.length > 0 ? (
+                                board.columns.map((column) => (
+                                    <Column
+                                        key={column._id}
+                                        column={column}
+                                        boardId={id}
+                                        onColumnUpdated={handleColumnUpdated}
+                                        onColumnDeleted={handleColumnDeleted}
+                                    />
+                                ))
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center py-12">
+                                    <div className="text-center">
+                                        <div className="text-gray-400 mb-4">
+                                            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                            </svg>
                                         </div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
+                                        <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
+                                        <button 
+                                            onClick={handleAddColumn}
+                                            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                                        >
+                                            Add First Column
+                                        </button>
                                     </div>
-                                )}
-                            </div>
-                        </DndProvider>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </>
             )}
