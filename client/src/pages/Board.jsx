@@ -132,9 +132,7 @@ function Board() {
             // Update column order
             try {
                 await boardService.updateColumnOrder(id, newColumns.map(col => col._id));
-                console.log('Column order updated:', newColumns.map(col => col._id));
             } catch (error) {
-                console.error('Error updating column order:', error);
                 // Revert on error
                 fetchBoard();
             }

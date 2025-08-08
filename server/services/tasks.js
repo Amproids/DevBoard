@@ -231,7 +231,7 @@ const updateTaskService = async (taskId, updateData, userId) => {
         if (updateData.order !== undefined && !updateData.column) {
             task.order = updateData.order;
         }
-
+        
         Object.keys(updateData).forEach(key => {
             if (!['column', 'order'].includes(key)) {
                 task[key] = updateData[key];
@@ -241,7 +241,11 @@ const updateTaskService = async (taskId, updateData, userId) => {
         await task.save({ session });
         await session.commitTransaction();
 
-        return task;
+        const updatedTask = await Tasks.findById(taskId)
+            .populate('assignees', 'firstName lastName avatar')
+            .populate('createdBy', 'firstName lastName');
+
+        return updatedTask;
     } catch (err) {
         await session.abortTransaction();
         console.error('Error in updateTaskService:', err.message);
@@ -577,10 +581,10 @@ const getColumnTasksService = async (columnId, userId, filterOptions = {}) => {
 
         switch (filter) {
             case 'completed':
-                query.isCompleted = true;
+                query.completed = true;
                 break;
             case 'pending':
-                query.isCompleted = false;
+                query.completed = false;
                 break;
             case 'assigned-to-me':
                 query.assignees = userId;

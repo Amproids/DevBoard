@@ -555,7 +555,7 @@ const options = {
                         createdBy: {
                             $ref: '#/components/schemas/UserRef'
                         },
-                        isCompleted: {
+                        completed: {
                             type: 'boolean',
                             default: false
                         },
@@ -666,7 +666,7 @@ const options = {
                             minimum: 0,
                             description: 'New position in column'
                         },
-                        isCompleted: {
+                        completed: {
                             type: 'boolean',
                             example: true
                         }

@@ -303,7 +303,7 @@ const getBoardsService = async (userId, filterOptions = {}) => {
                 select: 'name order isLocked tasks',
                 populate: {
                     path: 'tasks',
-                    select: 'title description dueDate priority assignees',
+                    select: 'title description dueDate priority assignees completed',
                     populate: {
                         path: 'assignees',
                         select: 'firstName lastName avatar email'
@@ -354,7 +354,7 @@ const getBoardService = async (boardId, userId) => {
                 select: 'name order isLocked tasks',
                 populate: {
                     path: 'tasks',
-                    select: 'title description dueDate priority assignees',
+                    select: 'title description dueDate priority assignees completed',
                     populate: {
                         path: 'assignees',
                         select: 'firstName lastName avatar email'
