@@ -25,10 +25,6 @@ module.exports = mongoose => {
             task: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'tasks'
-            },
-            comment: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'comments'
             }
         },
         {

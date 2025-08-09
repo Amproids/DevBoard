@@ -797,6 +797,66 @@ const options = {
                                 'JWT token returned as URL parameter after OAuth flow'
                         }
                     }
+                },
+                Attachment: {
+                    type: 'object',
+                    required: [
+                        'filename',
+                        'path',
+                        'mimeType',
+                        'size',
+                        'uploadedBy'
+                    ],
+                    properties: {
+                        _id: {
+                            type: 'string',
+                            format: 'objectId'
+                        },
+                        filename: {
+                            type: 'string',
+                            example: 'document.pdf'
+                        },
+                        path: {
+                            type: 'string',
+                            description: 'Filesystem path to the stored file'
+                        },
+                        mimeType: {
+                            type: 'string',
+                            example: 'application/pdf'
+                        },
+                        size: {
+                            type: 'integer',
+                            description: 'File size in bytes',
+                            example: 1024
+                        },
+                        uploadedBy: {
+                            $ref: '#/components/schemas/UserRef'
+                        },
+                        task: {
+                            type: 'string',
+                            format: 'objectId',
+                            description: 'Reference to Task'
+                        },
+                        createdAt: {
+                            type: 'string',
+                            format: 'date-time'
+                        },
+                        updatedAt: {
+                            type: 'string',
+                            format: 'date-time'
+                        }
+                    }
+                },
+                AttachmentInput: {
+                    type: 'object',
+                    required: ['file'],
+                    properties: {
+                        file: {
+                            type: 'string',
+                            format: 'binary',
+                            description: 'File to upload'
+                        }
+                    }
                 }
             }
         },
