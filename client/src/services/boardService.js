@@ -72,5 +72,20 @@ export const boardService = {
             console.error('Error deleting board:', error);
             throw error;
         }
+    },
+
+    // Update column order from dragging
+    async updateColumnOrder(boardId, columnIds) {
+        try {
+            const response = await axios.put(
+                `${API_BASE_URL}/boards/${boardId}/column-order`,
+                { columnIds },
+                getAuthHeaders()
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error updating column order:', error);
+            throw error;
+        }
     }
 };

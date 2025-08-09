@@ -136,8 +136,25 @@ const validateGetBoardsInput = data => {
     });
 };
 
+const validateColumnOrderInput = (data) => {
+    const schema = Joi.object({
+        columnIds: Joi.array()
+            .items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/))
+            .required()
+            .min(1)
+            .messages({
+                'array.base': 'columnIds must be an array',
+                'array.min': 'At least one column ID is required',
+                'string.pattern.base': 'Invalid column ID format'
+            })
+    });
+    
+    return schema.validate(data);
+};
+
 module.exports = {
     validateCreateBoardInput,
     validateUpdateBoardInput,
-    validateGetBoardsInput
+    validateGetBoardsInput,
+    validateColumnOrderInput
 };
