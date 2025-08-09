@@ -1,13 +1,47 @@
 import { useState } from 'react';
 import { taskService } from '../../services/taskService';
 
-function Task({ task, onTaskUpdated, onTaskDeleted, index, columnId }) {
+function Task({ task, onTaskUpdated, onTaskDeleted, onTaskDragStart, onTaskDragEnd, isDraggable = true }) {
     const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleTaskClick = () => {
+        // Don't open details if we're dragging
+        if (isDragging) return;
+        
         // TODO: Open task details modal
         console.log('Task clicked:', task.title);
+    };
+
+    const handleCheckboxChange = async (e) => {
+        e.stopPropagation(); // Prevent triggering handleTaskClick
+        
+        const newCompletedStatus = e.target.checked;
+        const updateData = { completed: newCompletedStatus };
+        
+        console.log('Updating task:', task._id, 'with data:', updateData);
+        
+        try {
+            setLoading(true);
+            // Update the task completion status
+            const updatedTask = await taskService.updateTask(task._id, updateData);
+            
+            console.log('Task updated successfully:', updatedTask);
+            
+            if (onTaskUpdated) {
+                // Pass the updated task data from the response
+                onTaskUpdated(updatedTask.data || updatedTask);
+            }
+        } catch (error) {
+            console.error('Error updating task completion:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error details:', JSON.stringify(error.response?.data, null, 2));
+            // Revert checkbox if update failed
+            e.target.checked = !newCompletedStatus;
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDeleteTask = async () => {
@@ -64,11 +98,41 @@ function Task({ task, onTaskUpdated, onTaskDeleted, index, columnId }) {
     };
 
     const dueDateInfo = task.dueDate ? formatDate(task.dueDate) : null;
+    const isCompleted = task.completed || false;
+
+    // Drag event handlers
+    const handleDragStart = (e) => {
+        // Don't allow dragging if not draggable
+        if (!isDraggable) {
+            e.preventDefault();
+            return;
+        }
+        
+        setIsDragging(true);
+        
+        // Call parent's drag start handler
+        if (onTaskDragStart) {
+            onTaskDragStart(e);
+        }
+    };
+
+    const handleDragEnd = (e) => {
+        setIsDragging(false);
+        
+        // Call parent's drag end handler
+        if (onTaskDragEnd) {
+            onTaskDragEnd(e);
+        }
+    };
+
+    // Prevent drag events from bubbling to column when clicking interactive elements
+    const handleInteractiveDragStart = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
 
     return (
-        <div
-            className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group"
-        >
+        <div className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group">
             {/* Task Menu Button */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -76,6 +140,7 @@ function Task({ task, onTaskUpdated, onTaskDeleted, index, columnId }) {
                         e.stopPropagation();
                         setShowMenu(!showMenu);
                     }}
+                    onDragStart={handleInteractiveDragStart}
                     className="p-1 rounded hover:bg-gray-100 transition-colors"
                     disabled={loading}
                 >
@@ -121,33 +186,44 @@ function Task({ task, onTaskUpdated, onTaskDeleted, index, columnId }) {
             </div>
 
             {/* Task Content */}
-            <div onClick={handleTaskClick} className="pr-6">
-                {/* Task Title */}
-                <div className="mb-2">
-                    <h4 className="font-medium text-sm text-gray-900 line-clamp-2">
+            <div className="pr-6">
+                {/* Checkbox and Task Title */}
+                <div className="mb-2 flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        checked={isCompleted}
+                        onChange={handleCheckboxChange}
+                        onClick={(e) => e.stopPropagation()}
+                        onDragStart={handleInteractiveDragStart}
+                        disabled={loading}
+                        className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                    />
+                    <h4 className={`font-medium text-sm text-gray-900 line-clamp-2 flex-1 ${isCompleted ? 'line-through text-gray-500' : ''}`}>
                         {task.title || 'Untitled Task'}
                     </h4>
                 </div>
 
                 {/* Task Description */}
                 {task.description && (
-                    <p className="text-xs text-gray-600 line-clamp-2 mb-3">
-                        {task.description}
-                    </p>
+                    <div className="ml-7">
+                        <p className={`text-xs text-gray-600 line-clamp-2 mb-3 ${isCompleted ? 'line-through text-gray-400' : ''}`}>
+                            {task.description}
+                        </p>
+                    </div>
                 )}
 
                 {/* Task Meta Information */}
-                <div className="space-y-2">
+                <div className="space-y-2 ml-7">
                     {/* Priority and Due Date Row */}
                     <div className="flex items-center justify-between">
                         {task.priority && (
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPriorityColor(task.priority)}`}>
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPriorityColor(task.priority)} ${isCompleted ? 'opacity-60' : ''}`}>
                                 {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                             </span>
                         )}
 
                         {dueDateInfo && (
-                            <span className={`text-xs ${dueDateInfo.className}`}>
+                            <span className={`text-xs ${dueDateInfo.className} ${isCompleted ? 'opacity-60' : ''}`}>
                                 {dueDateInfo.text}
                             </span>
                         )}
@@ -157,12 +233,12 @@ function Task({ task, onTaskUpdated, onTaskDeleted, index, columnId }) {
                     {task.assignees && task.assignees.length > 0 && (
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                                <svg className="w-3 h-3 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className={`w-3 h-3 text-gray-400 mr-1 ${isCompleted ? 'opacity-60' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                                <span className="text-xs text-gray-500 mr-2">Assigned to:</span>
+                                <span className={`text-xs text-gray-500 mr-2 ${isCompleted ? 'opacity-60' : ''}`}>Assigned to:</span>
                             </div>
-                            <div className="flex -space-x-1">
+                            <div className={`flex -space-x-1 ${isCompleted ? 'opacity-60' : ''}`}>
                                 {task.assignees.slice(0, 3).map((assignee, index) => (
                                     <div
                                         key={assignee._id || index}

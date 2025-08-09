@@ -37,6 +37,10 @@ module.exports = mongoose => {
                     type: String
                 }
             ],
+            completed: {
+                type: Boolean,
+                default: false
+            },
             comments: [
                 {
                     type: mongoose.Schema.Types.ObjectId,
@@ -59,7 +63,6 @@ module.exports = mongoose => {
             timestamps: true
         }
     );
-
     const Tasks = mongoose.model('tasks', taskSchema);
     return Tasks;
 };

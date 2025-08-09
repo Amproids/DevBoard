@@ -74,7 +74,7 @@ export const taskService = {
         }
     },
 
-    // Move a task to another column or reorder
+    // Move a task to another column or reorder within the same column
     async moveTask(taskId, moveData) {
         try {
             const response = await axios.patch(`${API_BASE_URL}/tasks/${taskId}/move`, moveData, getAuthHeaders());

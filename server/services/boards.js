@@ -150,6 +150,62 @@ const updateBoardService = async (boardId, updateData, userId) => {
     }
 };
 
+const updateColumnOrderService = async (boardId, columnIds, userId) => {
+    try {
+        // Find board and check permissions
+        const board = await Boards.findOne({
+            _id: boardId,
+            $or: [
+                { owner: userId },
+                { 'members.user': userId, 'members.role': { $in: ['admin', 'editor'] } }
+            ]
+        });
+
+        if (!board) {
+            throw createError(404, 'Board not found or you dont have permission to modify it');
+        }
+
+        // Validate that all provided column IDs belong to this board
+        const boardColumnIds = board.columns.map(col => col.toString());
+        const invalidColumns = columnIds.filter(id => !boardColumnIds.includes(id));
+        
+        if (invalidColumns.length > 0) {
+            throw createError(400, 'Invalid column IDs provided');
+        }
+
+        // Validate that we have all columns (no missing ones)
+        if (columnIds.length !== boardColumnIds.length) {
+            throw createError(400, 'All board columns must be included in the reorder');
+        }
+
+        // Update the board's columns array with new order
+        const updatedBoard = await Boards.findByIdAndUpdate(
+            boardId,
+            { columns: columnIds },
+            { new: true }
+        ).populate({
+            path: 'columns',
+            populate: { 
+                path: 'tasks',
+                populate: {
+                    path: 'assignees',
+                    select: 'firstName lastName avatar email'
+                }
+            }
+        }).populate('owner', 'firstName lastName email avatar')
+        .populate('members.user', 'firstName lastName email avatar');
+
+        return updatedBoard;
+    } catch (err) {
+        console.error('Error in boards.service.js -> updateColumnOrder:', err.message);
+        
+        if (err.name === 'CastError') {
+            throw createError(400, 'Invalid board ID format');
+        }
+        throw err;
+    }
+};
+
 const deleteBoardService = async (boardId, userId) => {
     try {
         const board = await Boards.findOneAndDelete({
@@ -247,7 +303,7 @@ const getBoardsService = async (userId, filterOptions = {}) => {
                 select: 'name order isLocked tasks',
                 populate: {
                     path: 'tasks',
-                    select: 'title description dueDate priority assignees',
+                    select: 'title description dueDate priority assignees completed',
                     populate: {
                         path: 'assignees',
                         select: 'firstName lastName avatar email'
@@ -298,7 +354,7 @@ const getBoardService = async (boardId, userId) => {
                 select: 'name order isLocked tasks',
                 populate: {
                     path: 'tasks',
-                    select: 'title description dueDate priority assignees',
+                    select: 'title description dueDate priority assignees completed',
                     populate: {
                         path: 'assignees',
                         select: 'firstName lastName avatar email'
@@ -325,6 +381,7 @@ const getBoardService = async (boardId, userId) => {
 module.exports = {
     createBoardService,
     updateBoardService,
+    updateColumnOrderService,
     deleteBoardService,
     getBoardsService,
     getBoardService
