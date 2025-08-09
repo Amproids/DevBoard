@@ -47,10 +47,10 @@ const EditBoardModal = ({ isOpen, onClose, board, onBoardUpdated }) => {
 			if (formData.description.trim()) {
 				updatedBoardData.description = formData.description.trim();
 			}
-
+			
 			const response = await boardService.updateBoard(formData._id, updatedBoardData);
 
-			onBoardUpdated(response.data);
+			onBoardUpdated(updatedBoardData);
 
 			onClose();
 		} catch (error) {

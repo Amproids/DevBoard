@@ -1,5 +1,6 @@
 const createError = require('http-errors');
 const Columns = require('../models').columns;
+const Tasks = require('../models').tasks;
 const Boards = require('../models').boards;
 const mongoose = require('mongoose');
 
