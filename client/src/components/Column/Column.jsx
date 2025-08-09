@@ -32,7 +32,7 @@ function Column({
         }
     });
     const ref = useRef(null);
-    const [_, dropRef] = useDrop({
+    const [{ isOver, canDrop }, dropRef] = useDrop({
         accept: COLUMN_TYPE,
         hover: (item, monitor) => {
             if (!ref.current) return;
@@ -53,8 +53,11 @@ function Column({
             onMoveColumn(dragIndex, hoverIndex);
             item.index = hoverIndex;
         },
+        collect: (monitor) => ({
+            isOver: monitor.isOver(),
+            canDrop: monitor.canDrop()
+        }),
         drop: (item) => {
-            console.log('Column dropped:', item.index, 'to', index);
             setLastDraggedColumn(null);
         }
     });
@@ -190,7 +193,7 @@ function Column({
     return (
         <div
             ref={ref}
-            className={`relative flex-shrink-0 w-72 mr-4 ${isDragging || (isSkeleton) ? 'opacity-10' : ''}`}
+            className={`relative flex-shrink-0 w-72 mr-4 ${isDragging || (isSkeleton && canDrop) ? 'opacity-10' : ''}`}
         >
             <div className="bg-white rounded-lg shadow-lg border border-gray-300">
                 {/* Column Header */}

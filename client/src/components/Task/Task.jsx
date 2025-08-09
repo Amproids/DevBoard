@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { taskService } from '../../services/taskService';
 
-function Task({ task, onTaskUpdated, onTaskDeleted }) {
+function Task({ task, onTaskUpdated, onTaskDeleted, index, columnId }) {
     const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -66,7 +66,9 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
     const dueDateInfo = task.dueDate ? formatDate(task.dueDate) : null;
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group">
+        <div
+            className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group"
+        >
             {/* Task Menu Button */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -126,7 +128,7 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
                         {task.title || 'Untitled Task'}
                     </h4>
                 </div>
-                
+
                 {/* Task Description */}
                 {task.description && (
                     <p className="text-xs text-gray-600 line-clamp-2 mb-3">
@@ -143,7 +145,7 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
                                 {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                             </span>
                         )}
-                        
+
                         {dueDateInfo && (
                             <span className={`text-xs ${dueDateInfo.className}`}>
                                 {dueDateInfo.text}
@@ -183,8 +185,8 @@ function Task({ task, onTaskUpdated, onTaskDeleted }) {
 
             {/* Click outside to close menu */}
             {showMenu && (
-                <div 
-                    className="fixed inset-0 z-10" 
+                <div
+                    className="fixed inset-0 z-10"
                     onClick={(e) => {
                         e.stopPropagation();
                         setShowMenu(false);

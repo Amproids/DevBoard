@@ -37,7 +37,7 @@ function App() {
                                 element={<Login setIsAuthenticated={login} />}
                             />
                             <Route
-                                path="/reset/password"
+                                path="/forgot-password"
                                 element={<ResetPassword />}
                             />
                             <Route
