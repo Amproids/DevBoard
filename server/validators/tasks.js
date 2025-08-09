@@ -82,11 +82,6 @@ const validateUpdateTaskInput = data => {
         completed: Joi.boolean().messages({
             'boolean.base': 'Completed must be a boolean value (true or false)'
         }),
-        order: Joi.number().integer().min(0).messages({
-            'number.base': 'Order must be a number',
-            'number.integer': 'Order must be an integer',
-            'number.min': 'Order cannot be negative'
-        }),
         column: Joi.string().hex().length(24).messages({
             'string.hex': 'Column ID must be a valid MongoDB ID',
             'string.length': 'Column ID must be 24 characters long'
