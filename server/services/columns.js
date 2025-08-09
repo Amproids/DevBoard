@@ -78,49 +78,69 @@ const updateColumnService = async (columnId, updateData, userId) => {
             return populated;
         }
 
-        if (updateData.order !== undefined) {
+        if (
+            updateData.order !== undefined &&
+            updateData.order !== column.order
+        ) {
             const newOrder = updateData.order;
-            const maxOrder =
-                (await Columns.countDocuments({
-                    board: column.board._id
-                }).session(session)) - 1;
+            const currentOrder = column.order;
+            const boardId = column.board._id;
 
-            if (newOrder < 0 || newOrder > maxOrder) {
+            const columns = await Columns.find({ board: boardId })
+                .sort({ order: 1 })
+                .session(session);
+
+            if (newOrder < 0 || newOrder >= columns.length) {
                 throw createError(
                     400,
-                    `Order must be between 0 and ${maxOrder}`
+                    `Order must be between 0 and ${columns.length - 1}`
                 );
             }
 
-            const existingColumn = await Columns.findOne({
-                board: column.board._id,
-                order: newOrder,
-                _id: { $ne: columnId }
-            }).session(session);
-
-            if (existingColumn) {
-                throw createError(409, {
-                    message: 'Order position already taken',
-                    conflictingColumnId: existingColumn._id,
-                    suggestedOrder: await getNextAvailableOrder(
-                        column.board._id,
-                        newOrder
-                    ),
-                    currentMaxOrder: maxOrder
-                });
+            if (newOrder > currentOrder) {
+                for (const col of columns) {
+                    if (col._id.equals(columnId)) {
+                        col.order = newOrder;
+                    } else if (
+                        col.order > currentOrder &&
+                        col.order <= newOrder
+                    ) {
+                        col.order -= 1;
+                    }
+                }
+            } else if (newOrder < currentOrder) {
+                for (const col of columns) {
+                    if (col._id.equals(columnId)) {
+                        col.order = newOrder;
+                    } else if (
+                        col.order >= newOrder &&
+                        col.order < currentOrder
+                    ) {
+                        col.order += 1;
+                    }
+                }
             }
+
+            await Promise.all(columns.map(col => col.save({ session })));
         }
 
         Object.keys(updateData).forEach(key => {
-            if (key !== 'taskOrder') {
+            if (key !== 'taskOrder' && key !== 'order') {
                 column[key] = updateData[key];
             }
         });
 
-        await column.save({ session });
+        if (
+            Object.keys(updateData).some(
+                key => key !== 'taskOrder' && key !== 'order'
+            )
+        ) {
+            await column.save({ session });
+        }
+
         await session.commitTransaction();
 
-        return column;
+        return await Columns.findById(columnId).session(session);
     } catch (err) {
         await session.abortTransaction();
         console.error('Error in updateColumnService:', err.message);
