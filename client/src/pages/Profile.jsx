@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileForm from '../components/ProfileManagement/ProfileForm';
 import CredentialForm from '../components/ProfileManagement/CredentialForm';
-import LinkedAccounts from '../components/ProfileManagement/linkedAccounts.jsx';
+import LinkedAccounts from '../components/ProfileManagement/LinkedAccounts.jsx';
 import AccountDeactivation from '../components/ProfileManagement/AccountDeactivation';
 import { useApi } from '../hooks/useApi';
 import { useFormStatus } from '../hooks/useFormStatus';
