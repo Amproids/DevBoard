@@ -140,3 +140,5 @@ vite.config.ts.timestamp-*
 
 # REST test
 .res
+
+uploads/
