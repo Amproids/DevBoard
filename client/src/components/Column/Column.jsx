@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { columnService } from '../../services/columnService';
 import { taskService } from '../../services/taskService';
 import AddTaskModal from '../Task/AddTaskModal.jsx';
@@ -14,6 +14,34 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     // Task drag-and-drop state
     const [draggedOverTaskIndex, setDraggedOverTaskIndex] = useState(null);
     const [isDraggedOver, setIsDraggedOver] = useState(false);
+    
+    // Track which task is being dragged for hiding it
+    const [draggedTaskId, setDraggedTaskId] = useState(null);
+
+    // Safety cleanup for stuck drag states
+    useEffect(() => {
+        const handleDragEnd = () => {
+            setDraggedOverTaskIndex(null);
+            setIsDraggedOver(false);
+            setDraggedTaskId(null);
+        };
+        
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                setDraggedOverTaskIndex(null);
+                setIsDraggedOver(false);
+                setDraggedTaskId(null);
+            }
+        };
+        
+        document.addEventListener('dragend', handleDragEnd);
+        document.addEventListener('keydown', handleEscape);
+        
+        return () => {
+            document.removeEventListener('dragend', handleDragEnd);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, []);
 
     const handleNameEdit = async () => {
         if (!columnName.trim() || columnName === column.name) {
@@ -118,15 +146,15 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('application/json', JSON.stringify(dragData));
         
-        // Add visual feedback - hide the original task being dragged
-        e.target.style.opacity = '0.3';
-        // Add a class to identify the dragged task for hiding
-        e.target.classList.add('task-being-dragged');
+        // Hide the task being dragged using display: none
+        setDraggedTaskId(task._id);
     };
 
     const handleTaskDragEnd = (e) => {
-        e.target.style.opacity = '1';
-        e.target.classList.remove('task-being-dragged');
+        // Restore the task visibility
+        setDraggedTaskId(null);
+        
+        // Clear drag states
         setDraggedOverTaskIndex(null);
         setIsDraggedOver(false);
     };
@@ -144,8 +172,21 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     };
 
     const handleTaskDragLeave = (e) => {
-        // Only clear if we're leaving the tasks container entirely
-        if (!e.currentTarget.contains(e.relatedTarget)) {
+        // Get the bounding rectangle of the tasks container
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX;
+        const y = e.clientY;
+        
+        // Check if the mouse is actually outside the container bounds
+        const isOutside = (
+            x < rect.left || 
+            x > rect.right || 
+            y < rect.top || 
+            y > rect.bottom
+        );
+        
+        // Only clear if we're actually leaving the container
+        if (isOutside) {
             setDraggedOverTaskIndex(null);
             setIsDraggedOver(false);
         }
@@ -163,8 +204,19 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     };
 
     const handleColumnDragLeave = (e) => {
-        // Only clear if we're leaving the column entirely
-        if (!e.currentTarget.contains(e.relatedTarget)) {
+        // Improved logic for column drag leave
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX;
+        const y = e.clientY;
+        
+        const isOutside = (
+            x < rect.left || 
+            x > rect.right || 
+            y < rect.top || 
+            y > rect.bottom
+        );
+        
+        if (isOutside) {
             setIsDraggedOver(false);
             setDraggedOverTaskIndex(null);
         }
@@ -419,7 +471,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                         {column.tasks && column.tasks.length > 0 ? (
                             column.tasks.map((task, index) => (
                                 <div key={task._id}>
-                                    {/* Placeholder above task - also acts as drop zone */}
+                                    {/* Placeholder above task - pushes task down */}
                                     {draggedOverTaskIndex === index && !column.isLocked && (
                                         <div 
                                             className="h-24 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg mb-3 animate-pulse"
@@ -431,10 +483,13 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                                         />
                                     )}
                                     
+                                    {/* The actual task - hidden with display: none if being dragged */}
                                     <div
+                                        style={{ 
+                                            display: draggedTaskId === task._id ? 'none' : 'block' 
+                                        }}
                                         onDragOver={(e) => handleTaskDragOver(e, index)}
                                         onDrop={(e) => handleTaskDrop(e, index)}
-                                        className={draggedOverTaskIndex === index ? 'opacity-0' : ''}
                                     >
                                         <Task
                                             task={task}
@@ -461,7 +516,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                             </div>
                         )}
                         
-                        {/* Placeholder at the end of tasks list - also acts as drop zone */}
+                        {/* Placeholder at the end of tasks list */}
                         {column.tasks && column.tasks.length > 0 && draggedOverTaskIndex === column.tasks.length && !column.isLocked && (
                             <div 
                                 className="h-24 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg animate-pulse"
