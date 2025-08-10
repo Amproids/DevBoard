@@ -127,7 +127,8 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         if (!window.confirm('Are you sure you want to delete this column?')) return;
         try {
             setLoading(true);
-            await columnService.deleteColumn(column._id, { action: 'delete' });
+            // Use "delete-tasks" instead of "delete"
+            await columnService.deleteColumn(column._id, { action: 'delete-tasks' });
             if (onColumnDeleted) {
                 onColumnDeleted(column._id);
             }
