@@ -41,6 +41,18 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         setTasks(column.tasks || []);
     }, [column.tasks]);
 
+    // Helper function to adjust index based on placeholder presence
+    const adjustIndexForPlaceholder = (index, hasPlaceholder) => {
+        if (!hasPlaceholder) return index;
+        
+        // If there's a placeholder at index 0 and we're inserting at index 0,
+        // we actually want to insert at the beginning of tasks (index 0)
+        if (index === 0) return 0;
+        
+        // For any other index, subtract 1 to account for placeholder
+        return Math.max(0, index - 1);
+    };
+
     const handleNameEdit = async () => {
         if (!columnName.trim() || columnName === column.name) {
             setColumnName(column.name);
@@ -132,48 +144,67 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         }
     };
 
-    // Handle task reordering within the same column
-    const handleTaskSort = async (newTasks, sortableEvent) => {
-        // Guard against null sortableEvent (can happen on initial render)
-        if (!sortableEvent) {
-            return;
-        }
+    // Handle task reordering UI updates
+    const handleTaskSort = (newTasks) => {
+        // Filter out any non-task elements (like placeholder divs)
+        const validTasks = newTasks.filter(task => task && task._id);
         
-        const { oldIndex, newIndex, from, to } = sortableEvent;
+        // Update local state immediately for smooth UI
+        setTasks(validTasks);
+        
+        // Update parent component
+        const updatedColumn = { ...column, tasks: validTasks };
+        onColumnUpdated(updatedColumn);
+    };
+
+    // Handle when task reordering finishes (API call)
+    const handleTaskEnd = async (evt) => {
+        const { oldIndex, newIndex, from, to } = evt;
         
         console.log('=== TASK SORT DEBUG ===');
-        console.log('Old Index:', oldIndex);
-        console.log('New Index:', newIndex);
+        console.log('Raw Old Index:', oldIndex);
+        console.log('Raw New Index:', newIndex);
         console.log('Same column?', from === to);
         console.log('Column ID:', column._id);
+        console.log('Tasks length:', tasks.length);
+        console.log('Has placeholder?', tasks.length === 0);
         
-        // If no change in position, return early
-        if (oldIndex === newIndex && from === to) {
-            return;
-        }
-
-        // Update local state immediately for smooth UI
-        setTasks(newTasks);
-
-        // Update parent component
-        const updatedColumn = { ...column, tasks: newTasks };
-        onColumnUpdated(updatedColumn);
-
-        // Persist to backend
-        try {
-            const taskToMove = newTasks[newIndex];
-            const moveData = {
-                targetColumnId: column._id,
-                newOrder: newIndex
-            };
+        // Only handle same-column moves here (cross-column moves are handled by onAdd)
+        if (from === to) {
+            // Check if this is a valid same-column move
+            const hasPlaceholder = tasks.length === 0;
+            const adjustedOldIndex = adjustIndexForPlaceholder(oldIndex, hasPlaceholder);
+            const adjustedNewIndex = adjustIndexForPlaceholder(newIndex, hasPlaceholder);
             
-            console.log('Moving task:', taskToMove._id, 'to position:', newIndex);
-            await taskService.moveTask(taskToMove._id, moveData);
-        } catch (error) {
-            console.error('Error moving task:', error);
-            // Revert on error
-            setTasks(column.tasks || []);
-            alert('Failed to move task. Please try again.');
+            console.log('Adjusted Old Index:', adjustedOldIndex);
+            console.log('Adjusted New Index:', adjustedNewIndex);
+            
+            // If no change in position after adjustment, return early
+            if (adjustedOldIndex === adjustedNewIndex) {
+                console.log('No actual position change after adjustment');
+                return;
+            }
+
+            try {
+                const taskToMove = tasks[adjustedNewIndex] || tasks[0]; // Fallback to first task
+                if (!taskToMove) {
+                    console.log('No valid task to move');
+                    return;
+                }
+                
+                const moveData = {
+                    targetColumnId: column._id,
+                    newOrder: adjustedNewIndex
+                };
+                
+                console.log('Moving task:', taskToMove._id, 'to adjusted position:', adjustedNewIndex);
+                await taskService.moveTask(taskToMove._id, moveData);
+            } catch (error) {
+                console.error('Error moving task:', error);
+                // Revert on error
+                setTasks(column.tasks || []);
+                alert('Failed to move task. Please try again.');
+            }
         }
     };
 
@@ -189,13 +220,20 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         console.log('Task:', taskData.title);
         console.log('From column:', sourceColumnId);
         console.log('To column:', column._id);
-        console.log('New position:', newIndex);
+        console.log('Raw New position:', newIndex);
+        
+        // Check if target column has placeholder
+        const targetHasPlaceholder = tasks.length === 0;
+        const adjustedNewIndex = adjustIndexForPlaceholder(newIndex, targetHasPlaceholder);
+        
+        console.log('Target has placeholder?', targetHasPlaceholder);
+        console.log('Adjusted New position:', adjustedNewIndex);
 
         try {
-            // Update backend
+            // Update backend with adjusted index
             const moveData = {
                 targetColumnId: column._id,
-                newOrder: newIndex
+                newOrder: adjustedNewIndex
             };
             
             await taskService.moveTask(taskData._id, moveData);
@@ -210,9 +248,9 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                             tasks: col.tasks.filter(t => t._id !== taskData._id)
                         };
                     } else if (col._id === column._id) {
-                        // Add to target at correct position
+                        // Add to target at correct adjusted position
                         const newTasks = [...(col.tasks || [])];
-                        newTasks.splice(newIndex, 0, taskData);
+                        newTasks.splice(adjustedNewIndex, 0, taskData);
                         return {
                             ...col,
                             tasks: newTasks
@@ -233,10 +271,17 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         const { oldIndex } = evt;
         
         console.log('=== TASK REMOVED FROM COLUMN ===');
-        console.log('Removed from index:', oldIndex);
+        console.log('Raw Removed from index:', oldIndex);
         
-        // Remove from local state
-        const newTasks = tasks.filter((_, index) => index !== oldIndex);
+        // Adjust index for placeholder if needed
+        const hasPlaceholder = tasks.length === 1; // Will be 1 because we haven't removed yet
+        const adjustedOldIndex = adjustIndexForPlaceholder(oldIndex, hasPlaceholder);
+        
+        console.log('Has placeholder?', hasPlaceholder);
+        console.log('Adjusted Removed from index:', adjustedOldIndex);
+        
+        // Remove from local state using adjusted index
+        const newTasks = tasks.filter((_, index) => index !== adjustedOldIndex);
         setTasks(newTasks);
         
         // Update parent
@@ -344,6 +389,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                             dragoverBubble={false}
                             onAdd={handleTaskAdd}
                             onRemove={handleTaskRemove}
+                            onEnd={handleTaskEnd}
                             onMove={handleMove}
                             className="space-y-3 min-h-[200px]"
                             style={{ minHeight: '200px' }}
@@ -365,7 +411,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-8 text-gray-500">
+                                <div className="text-center py-8 text-gray-500 select-none">
                                     <p className="text-sm">No tasks yet</p>
                                 </div>
                             )}
