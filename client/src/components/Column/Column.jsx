@@ -161,14 +161,6 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     const handleTaskEnd = async (evt) => {
         const { oldIndex, newIndex, from, to } = evt;
         
-        console.log('=== TASK SORT DEBUG ===');
-        console.log('Raw Old Index:', oldIndex);
-        console.log('Raw New Index:', newIndex);
-        console.log('Same column?', from === to);
-        console.log('Column ID:', column._id);
-        console.log('Tasks length:', tasks.length);
-        console.log('Has placeholder?', tasks.length === 0);
-        
         // Only handle same-column moves here (cross-column moves are handled by onAdd)
         if (from === to) {
             // Check if this is a valid same-column move
@@ -176,19 +168,14 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
             const adjustedOldIndex = adjustIndexForPlaceholder(oldIndex, hasPlaceholder);
             const adjustedNewIndex = adjustIndexForPlaceholder(newIndex, hasPlaceholder);
             
-            console.log('Adjusted Old Index:', adjustedOldIndex);
-            console.log('Adjusted New Index:', adjustedNewIndex);
-            
             // If no change in position after adjustment, return early
             if (adjustedOldIndex === adjustedNewIndex) {
-                console.log('No actual position change after adjustment');
                 return;
             }
 
             try {
                 const taskToMove = tasks[adjustedNewIndex] || tasks[0]; // Fallback to first task
                 if (!taskToMove) {
-                    console.log('No valid task to move');
                     return;
                 }
                 
@@ -196,8 +183,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                     targetColumnId: column._id,
                     newOrder: adjustedNewIndex
                 };
-                
-                console.log('Moving task:', taskToMove._id, 'to adjusted position:', adjustedNewIndex);
+
                 await taskService.moveTask(taskToMove._id, moveData);
             } catch (error) {
                 console.error('Error moving task:', error);
@@ -216,18 +202,9 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         const taskData = JSON.parse(item.getAttribute('data-task'));
         const sourceColumnId = item.getAttribute('data-source-column');
         
-        console.log('=== CROSS COLUMN MOVE ===');
-        console.log('Task:', taskData.title);
-        console.log('From column:', sourceColumnId);
-        console.log('To column:', column._id);
-        console.log('Raw New position:', newIndex);
-        
         // Check if target column has placeholder
         const targetHasPlaceholder = tasks.length === 0;
         const adjustedNewIndex = adjustIndexForPlaceholder(newIndex, targetHasPlaceholder);
-        
-        console.log('Target has placeholder?', targetHasPlaceholder);
-        console.log('Adjusted New position:', adjustedNewIndex);
 
         try {
             // Update backend with adjusted index
@@ -270,15 +247,9 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     const handleTaskRemove = (evt) => {
         const { oldIndex } = evt;
         
-        console.log('=== TASK REMOVED FROM COLUMN ===');
-        console.log('Raw Removed from index:', oldIndex);
-        
         // Adjust index for placeholder if needed
         const hasPlaceholder = tasks.length === 1; // Will be 1 because we haven't removed yet
         const adjustedOldIndex = adjustIndexForPlaceholder(oldIndex, hasPlaceholder);
-        
-        console.log('Has placeholder?', hasPlaceholder);
-        console.log('Adjusted Removed from index:', adjustedOldIndex);
         
         // Remove from local state using adjusted index
         const newTasks = tasks.filter((_, index) => index !== adjustedOldIndex);
