@@ -43,46 +43,16 @@ const createTaskService = async (columnId, taskData, userId) => {
             }
         }
 
-        let order = column.tasks.length;
-
-        if (typeof taskData.order === 'number') {
-            if (taskData.order < 0 || taskData.order > column.tasks.length) {
-                throw createError(
-                    400,
-                    `Order must be between 0 and ${column.tasks.length}`
-                );
-            }
-
-            if (taskData.order < column.tasks.length) {
-                await Tasks.updateMany(
-                    {
-                        column: columnId,
-                        order: { $gte: taskData.order }
-                    },
-                    { $inc: { order: 1 } },
-                    { session }
-                );
-            }
-
-            order = taskData.order;
-        }
-
         const newTask = new Tasks({
             ...taskData,
             column: columnId,
             board: column.board._id,
-            createdBy: userId,
-            order: order
+            createdBy: userId
         });
 
         const savedTask = await newTask.save({ session });
 
-        if (typeof taskData.order === 'number') {
-            column.tasks.splice(order, 0, savedTask._id);
-        } else {
-            column.tasks.push(savedTask._id);
-        }
-
+        column.tasks.push(savedTask._id);
         await column.save({ session });
 
         await session.commitTransaction();
@@ -225,13 +195,8 @@ const updateTaskService = async (taskId, updateData, userId) => {
             ).session(session);
 
             task.column = updateData.column;
-            task.order = newOrder;
         }
 
-        if (updateData.order !== undefined && !updateData.column) {
-            task.order = updateData.order;
-        }
-        
         Object.keys(updateData).forEach(key => {
             if (!['column', 'order'].includes(key)) {
                 task[key] = updateData[key];
@@ -329,7 +294,6 @@ const moveTaskService = async (taskId, moveData, userId) => {
     session.startTransaction();
     
     try {
-        // At the start
         console.log('=== MOVE TASK SERVICE START ===');
         console.log('TaskId:', taskId);
         console.log('Target Column:', moveData.targetColumnId);
@@ -348,7 +312,6 @@ const moveTaskService = async (taskId, moveData, userId) => {
             
         if (!task) throw createError(404, 'Task not found');
         
-        // After finding the task
         console.log('Current Column:', task.column._id);
         console.log('Is same column?', task.column.equals(moveData.targetColumnId));
         
@@ -370,7 +333,6 @@ const moveTaskService = async (taskId, moveData, userId) => {
             throw createError(400, 'Target column not found in this board');
         }
         
-        // Calculate max order after potential removal
         const isMovingWithinSameColumn = task.column.equals(moveData.targetColumnId);
         const maxOrder = isMovingWithinSameColumn ? targetColumn.tasks.length - 1 : targetColumn.tasks.length;
         
@@ -378,42 +340,32 @@ const moveTaskService = async (taskId, moveData, userId) => {
             throw createError(400, `Order must be between 0 and ${maxOrder}`);
         }
         
-        // ALWAYS remove from current column first (even if same column)
         await Columns.updateOne(
             { _id: task.column._id },
             { $pull: { tasks: taskId } }
         ).session(session);
         
-        // After removing from current column
         console.log('Removed task from column:', task.column._id);
         
-        // Get the updated target column after removal
         const targetCol = await Columns.findById(moveData.targetColumnId).session(session);
         
-        // After getting the updated target column
         console.log('Target column tasks before insert:', targetCol.tasks);
         
-        const tasksArray = [...targetCol.tasks]; // Create a copy of the tasks array
-        
-        // Insert the task at the new position
+        const tasksArray = [...targetCol.tasks];
         tasksArray.splice(moveData.newOrder, 0, taskId);
         
-        // After splicing
         console.log('Target column tasks after insert:', tasksArray);
         
-        // Update the column with the new ordered array
         await Columns.updateOne(
             { _id: moveData.targetColumnId },
             { $set: { tasks: tasksArray } }
         ).session(session);
         
         task.column = moveData.targetColumnId;
-        task.order = moveData.newOrder;
         await task.save({ session });
         
         await session.commitTransaction();
         
-        // Before returning
         console.log('=== MOVE COMPLETE ===');
         
         return {
