@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ReactSortable } from 'react-sortablejs';
 import { columnService } from '../../services/columnService';
 import { taskService } from '../../services/taskService';
 import AddTaskModal from '../Task/AddTaskModal.jsx';
@@ -11,9 +12,34 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     const [showMenu, setShowMenu] = useState(false);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
     
-    // Task drag-and-drop state
-    const [draggedOverTaskIndex, setDraggedOverTaskIndex] = useState(null);
-    const [isDraggedOver, setIsDraggedOver] = useState(false);
+    // Animation state to prevent interactions during animations
+    const [isAnimating, setIsAnimating] = useState(false);
+    
+    // Handle when ReactSortable wants to move/reorder elements (preview)
+    const handleMove = (evt) => {
+        // If already animating a preview, block new ones
+        if (isAnimating) {
+            return false; // Returning false prevents the move
+        }
+        
+        // Allow the move and set animation lock
+        setIsAnimating(true);
+        
+        // Clear the lock after animation completes
+        setTimeout(() => {
+            setIsAnimating(false);
+        }, 250); // Slightly longer than the 200ms animation
+        
+        return true; // Allow the move
+    };
+    
+    // Local tasks state for sortable
+    const [tasks, setTasks] = useState(column.tasks || []);
+
+    // Update local tasks when column tasks change
+    useEffect(() => {
+        setTasks(column.tasks || []);
+    }, [column.tasks]);
 
     const handleNameEdit = async () => {
         if (!columnName.trim() || columnName === column.name) {
@@ -64,7 +90,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         if (!window.confirm('Are you sure you want to delete this column?')) return;
         try {
             setLoading(true);
-            await columnService.deleteColumn(column._id, { action: 'delete' });
+            await columnService.deleteColumn(column._id, { action: 'delete-tasks' });
             if (onColumnDeleted) {
                 onColumnDeleted(column._id);
             }
@@ -106,232 +132,129 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         }
     };
 
-    // Task drag-and-drop handlers
-    const handleTaskDragStart = (e, task, taskIndex) => {
-        // Store dragged task data in dataTransfer
-        const dragData = {
-            taskId: task._id,
-            task: task,
-            sourceColumnId: column._id,
-            sourceIndex: taskIndex
-        };
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('application/json', JSON.stringify(dragData));
-        
-        // Add visual feedback - hide the original task being dragged
-        e.target.style.opacity = '0.3';
-        // Add a class to identify the dragged task for hiding
-        e.target.classList.add('task-being-dragged');
-    };
-
-    const handleTaskDragEnd = (e) => {
-        e.target.style.opacity = '1';
-        e.target.classList.remove('task-being-dragged');
-        setDraggedOverTaskIndex(null);
-        setIsDraggedOver(false);
-    };
-
-    const handleTaskDragOver = (e, taskIndex) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Don't process if column is locked
-        if (column.isLocked) return;
-        
-        e.dataTransfer.dropEffect = 'move';
-        setDraggedOverTaskIndex(taskIndex);
-        setIsDraggedOver(true);
-    };
-
-    const handleTaskDragLeave = (e) => {
-        // Only clear if we're leaving the tasks container entirely
-        if (!e.currentTarget.contains(e.relatedTarget)) {
-            setDraggedOverTaskIndex(null);
-            setIsDraggedOver(false);
+    // Handle task reordering within the same column
+    const handleTaskSort = async (newTasks, sortableEvent) => {
+        // Guard against null sortableEvent (can happen on initial render)
+        if (!sortableEvent) {
+            return;
         }
-    };
-
-    const handleColumnDragOver = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
         
-        // Don't process if column is locked
-        if (column.isLocked) return;
+        const { oldIndex, newIndex, from, to } = sortableEvent;
         
-        e.dataTransfer.dropEffect = 'move';
-        setIsDraggedOver(true);
-    };
-
-    const handleColumnDragLeave = (e) => {
-        // Only clear if we're leaving the column entirely
-        if (!e.currentTarget.contains(e.relatedTarget)) {
-            setIsDraggedOver(false);
-            setDraggedOverTaskIndex(null);
+        console.log('=== TASK SORT DEBUG ===');
+        console.log('Old Index:', oldIndex);
+        console.log('New Index:', newIndex);
+        console.log('Same column?', from === to);
+        console.log('Column ID:', column._id);
+        
+        // If no change in position, return early
+        if (oldIndex === newIndex && from === to) {
+            return;
         }
-    };
 
-    const handleTaskDrop = async (e, dropIndex = null) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (column.isLocked) return;
-        
-        // If dropIndex is null, we're dropping on empty column area (index 0)
-        const actualDropIndex = dropIndex !== null ? dropIndex : 0;
-        
-        // If column has tasks but dropIndex is null, ignore (shouldn't happen with proper event handling)
-        if (dropIndex === null && column.tasks && column.tasks.length > 0) return;
-        
+        // Update local state immediately for smooth UI
+        setTasks(newTasks);
+
+        // Update parent component
+        const updatedColumn = { ...column, tasks: newTasks };
+        onColumnUpdated(updatedColumn);
+
+        // Persist to backend
         try {
-            const rawData = e.dataTransfer.getData('application/json');
-            if (!rawData || rawData.trim() === '') return;
-            
-            const dragData = JSON.parse(rawData);
-            const { taskId, task, sourceColumnId, sourceIndex } = dragData;
-            
-            // DEBUG: Log initial state
-            console.log('=== TASK DROP DEBUG ===');
-            console.log('Source Column ID:', sourceColumnId);
-            console.log('Target Column ID:', column._id);
-            console.log('Source Index:', sourceIndex);
-            console.log('Drop Index:', actualDropIndex);
-            console.log('Same Column?', sourceColumnId === column._id);
-            console.log('Is Empty Column Drop?', dropIndex === null);
-            console.log('Current column tasks:', column.tasks?.map(t => ({id: t._id, title: t.title})) || []);
-            
-            // If dropping in the same column and same position, do nothing
-            if (sourceColumnId === column._id && sourceIndex === actualDropIndex) {
-                console.log('SAME POSITION - ABORTING');
-                setDraggedOverTaskIndex(null);
-                setIsDraggedOver(false);
-                return;
-            }
-            
-            // Special case: dropping in same empty column
-            if (sourceColumnId === column._id && dropIndex === null) {
-                console.log('SAME EMPTY COLUMN - ABORTING');
-                setDraggedOverTaskIndex(null);
-                setIsDraggedOver(false);
-                return;
-            }
-            
-            // Prepare the move data
+            const taskToMove = newTasks[newIndex];
             const moveData = {
                 targetColumnId: column._id,
-                newOrder: actualDropIndex
+                newOrder: newIndex
             };
             
-            // DEBUG: Log what we're sending to backend
-            console.log('Move data being sent:', moveData);
-            console.log('Task being moved:', { id: taskId, title: task.title });
+            console.log('Moving task:', taskToMove._id, 'to position:', newIndex);
+            await taskService.moveTask(taskToMove._id, moveData);
+        } catch (error) {
+            console.error('Error moving task:', error);
+            // Revert on error
+            setTasks(column.tasks || []);
+            alert('Failed to move task. Please try again.');
+        }
+    };
+
+    // Handle cross-column task moves
+    const handleTaskAdd = async (evt) => {
+        const { item, from, to, oldIndex, newIndex } = evt;
+        
+        // Get the task data from the item's data attribute
+        const taskData = JSON.parse(item.getAttribute('data-task'));
+        const sourceColumnId = item.getAttribute('data-source-column');
+        
+        console.log('=== CROSS COLUMN MOVE ===');
+        console.log('Task:', taskData.title);
+        console.log('From column:', sourceColumnId);
+        console.log('To column:', column._id);
+        console.log('New position:', newIndex);
+
+        try {
+            // Update backend
+            const moveData = {
+                targetColumnId: column._id,
+                newOrder: newIndex
+            };
             
-            // Create new tasks array with the task inserted at the correct position
-            const currentTasks = column.tasks || [];
-            const newTasks = [...currentTasks];
-            
-            // If moving within the same column, remove from old position first
-            if (sourceColumnId === column._id) {
-                console.log('WITHIN COLUMN MOVE');
-                console.log('Tasks before reorder:', newTasks.map(t => t.title));
-                
-                newTasks.splice(sourceIndex, 1);
-                console.log('After removal:', newTasks.map(t => t.title));
-                
-                // Adjust drop index if moving down within the same column
-                const adjustedDropIndex = actualDropIndex > sourceIndex ? actualDropIndex - 1 : actualDropIndex;
-                newTasks.splice(adjustedDropIndex, 0, task);
-                console.log('After insertion:', newTasks.map(t => t.title));
-            } else {
-                // Moving from different column, just insert at drop position
-                console.log('CROSS COLUMN MOVE');
-                console.log('Target column tasks before:', currentTasks.map(t => t.title));
-                
-                newTasks.splice(actualDropIndex, 0, task);
-                
-                console.log('Target column tasks after:', newTasks.map(t => t.title));
-            }
-            
-            // Optimistically update UI
-            const updatedColumn = { ...column, tasks: newTasks };
-            onColumnUpdated(updatedColumn);
-            
-            // Also update other columns if we have access to all columns
+            await taskService.moveTask(taskData._id, moveData);
+
+            // Update all columns if callback is available
             if (onAllColumnsUpdated && allColumns) {
                 const updatedColumns = allColumns.map(col => {
-                    if (col._id === sourceColumnId && sourceColumnId !== column._id) {
-                        // Remove task from source column
+                    if (col._id === sourceColumnId) {
+                        // Remove from source
                         return {
                             ...col,
-                            tasks: col.tasks.filter(t => t._id !== taskId)
+                            tasks: col.tasks.filter(t => t._id !== taskData._id)
                         };
                     } else if (col._id === column._id) {
-                        // Update target column
-                        return updatedColumn;
+                        // Add to target at correct position
+                        const newTasks = [...(col.tasks || [])];
+                        newTasks.splice(newIndex, 0, taskData);
+                        return {
+                            ...col,
+                            tasks: newTasks
+                        };
                     }
                     return col;
                 });
                 onAllColumnsUpdated(updatedColumns);
             }
-            
-            // Call API to persist the move
-            console.log('Calling API with:', { taskId, moveData });
-            const response = await taskService.moveTask(taskId, moveData);
-            console.log('API Response:', response);
-            
         } catch (error) {
-            console.error('Error moving task:', error);
-            // Show error message to user
-            alert('Failed to move task. Please try again.');
-            // Refresh the board to revert the optimistic update
-            window.location.reload();
-        } finally {
-            setDraggedOverTaskIndex(null);
-            setIsDraggedOver(false);
+            console.error('Error in cross-column move:', error);
+            alert('Failed to move task. Please refresh the page.');
         }
+    };
+
+    // Handle when task is removed from this column (going to another column)
+    const handleTaskRemove = (evt) => {
+        const { oldIndex } = evt;
+        
+        console.log('=== TASK REMOVED FROM COLUMN ===');
+        console.log('Removed from index:', oldIndex);
+        
+        // Remove from local state
+        const newTasks = tasks.filter((_, index) => index !== oldIndex);
+        setTasks(newTasks);
+        
+        // Update parent
+        const updatedColumn = { ...column, tasks: newTasks };
+        onColumnUpdated(updatedColumn);
     };
 
     const getTaskCount = () => column.tasks ? column.tasks.length : 0;
-
-    // Drag handlers for the column header
-    const handleDragStart = (e) => {
-        if (isEditingName) {
-            e.preventDefault();
-            return false;
-        }
-        
-        if (onColumnDragStart) {
-            onColumnDragStart(e);
-        }
-    };
-
-    const handleDragEnd = (e) => {
-        if (onColumnDragEnd) {
-            onColumnDragEnd(e);
-        }
-    };
 
     return (
         <div className="flex-shrink-0 w-80">
             <div 
                 className={`bg-white rounded-lg shadow-sm border transition-all duration-200 ${
-                    isDraggedOver && !column.isLocked ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
-                } ${
-                    isDraggedOver && column.isLocked ? 'ring-2 ring-red-400 ring-opacity-50 opacity-75' : ''
+                    column.isLocked ? 'opacity-75' : ''
                 }`}
-                onDragOver={handleColumnDragOver}
-                onDragLeave={handleColumnDragLeave}
             >
-                {/* Column Header - DRAGGABLE AREA */}
-                <div 
-                    className="p-4 border-b border-gray-200 select-none"
-                    draggable={!isEditingName}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    style={{ 
-                        cursor: isEditingName ? 'default' : 'move',
-                        userSelect: 'none'
-                    }}
-                >
+                {/* Column Header */}
+                <div className="p-4 border-b border-gray-200 select-none">
                     <div className="flex items-center justify-between mb-2">
                         {isEditingName ? (
                             <input
@@ -344,8 +267,6 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                                 disabled={loading}
                                 autoFocus
                                 maxLength={50}
-                                draggable={false}
-                                onDragStart={(e) => e.preventDefault()}
                             />
                         ) : (
                             <h3
@@ -364,8 +285,6 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                                 }}
                                 className="p-1 rounded hover:bg-gray-100"
                                 disabled={loading}
-                                onDragStart={(e) => e.preventDefault()}
-                                draggable={false}
                             >
                                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01" />
@@ -409,79 +328,69 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                     </div>
                 </div>
 
-                {/* Tasks Container */}
-                <div 
-                    className="p-4"
-                    onDragOver={handleColumnDragOver}
-                    onDragLeave={handleTaskDragLeave}
-                >
-                    <div className="space-y-3 min-h-[200px]">
-                        {column.tasks && column.tasks.length > 0 ? (
-                            column.tasks.map((task, index) => (
-                                <div key={task._id}>
-                                    {/* Placeholder above task - also acts as drop zone */}
-                                    {draggedOverTaskIndex === index && !column.isLocked && (
-                                        <div 
-                                            className="h-24 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg mb-3 animate-pulse"
-                                            onDrop={(e) => handleTaskDrop(e, index)}
-                                            onDragOver={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                            }}
-                                        />
-                                    )}
-                                    
-                                    <div
-                                        onDragOver={(e) => handleTaskDragOver(e, index)}
-                                        onDrop={(e) => handleTaskDrop(e, index)}
-                                        className={draggedOverTaskIndex === index ? 'opacity-0' : ''}
+                {/* Tasks Container with ReactSortable */}
+                <div className="p-4">
+                    {!column.isLocked ? (
+                        <ReactSortable
+                            list={tasks}
+                            setList={handleTaskSort}
+                            group="tasks"
+                            animation={200}
+                            delay={0}
+                            delayOnTouchStart={true}
+                            ghostClass="sortable-ghost"
+                            chosenClass="sortable-chosen"
+                            dragClass="sortable-drag"
+                            dragoverBubble={false}
+                            onAdd={handleTaskAdd}
+                            onRemove={handleTaskRemove}
+                            onMove={handleMove}
+                            className="space-y-3 min-h-[200px]"
+                            style={{ minHeight: '200px' }}
+                        >
+                            {tasks.length > 0 ? (
+                                tasks.map((task) => (
+                                    <div 
+                                        key={task._id}
+                                        data-task={JSON.stringify(task)}
+                                        data-source-column={column._id}
+                                        className="cursor-move"
                                     >
                                         <Task
                                             task={task}
                                             onTaskUpdated={handleTaskUpdated}
                                             onTaskDeleted={handleTaskDeleted}
-                                            onTaskDragStart={(e) => handleTaskDragStart(e, task, index)}
-                                            onTaskDragEnd={handleTaskDragEnd}
-                                            isDraggable={!column.isLocked}
+                                            isDraggable={true}
                                         />
                                     </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    <p className="text-sm">No tasks yet</p>
                                 </div>
-                            ))
-                        ) : (
-                            <div 
-                                className={`text-center py-8 text-gray-500 ${
-                                    isDraggedOver && !column.isLocked ? 'opacity-50' : ''
-                                }`}
-                                onDrop={(e) => handleTaskDrop(e)}
-                                onDragOver={(e) => e.preventDefault()}
-                            >
-                                <p className="text-sm">
-                                    {isDraggedOver && !column.isLocked ? 'Drop task here' : 'No tasks yet'}
-                                </p>
-                            </div>
-                        )}
-                        
-                        {/* Placeholder at the end of tasks list - also acts as drop zone */}
-                        {column.tasks && column.tasks.length > 0 && draggedOverTaskIndex === column.tasks.length && !column.isLocked && (
-                            <div 
-                                className="h-24 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg animate-pulse"
-                                onDrop={(e) => handleTaskDrop(e, column.tasks.length)}
-                                onDragOver={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                }}
-                            />
-                        )}
-                        
-                        {/* Drop zone at the end of the list */}
-                        {column.tasks && column.tasks.length > 0 && (
-                            <div
-                                className="h-4"
-                                onDragOver={(e) => handleTaskDragOver(e, column.tasks.length)}
-                                onDrop={(e) => handleTaskDrop(e, column.tasks.length)}
-                            />
-                        )}
-                    </div>
+                            )}
+                        </ReactSortable>
+                    ) : (
+                        // Locked column - no drag and drop
+                        <div className="space-y-3 min-h-[200px]">
+                            {tasks.length > 0 ? (
+                                tasks.map((task) => (
+                                    <div key={task._id}>
+                                        <Task
+                                            task={task}
+                                            onTaskUpdated={handleTaskUpdated}
+                                            onTaskDeleted={handleTaskDeleted}
+                                            isDraggable={false}
+                                        />
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    <p className="text-sm">No tasks yet</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     
                     {!column.isLocked && (
                         <button
@@ -505,6 +414,30 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
                 columnId={column._id}
                 onTaskCreated={handleTaskCreated}
             />
+
+            {/* Add CSS for sortable styling */}
+            <style>
+                {`
+                .sortable-ghost {
+                    opacity: 0.4;
+                    background: #f3f4f6;
+                    border: 2px dashed #3b82f6;
+                    border-radius: 8px;
+                }
+                
+                .sortable-chosen {
+                    cursor: grabbing !important;
+                }
+                
+                .sortable-drag {
+                    opacity: 0.8;
+                    transform: rotate(5deg);
+                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+                    border: 2px solid #3b82f6;
+                    z-index: 9999;
+                }
+                `}
+            </style>
         </div>
     );
 }
