@@ -141,27 +141,31 @@ function Board() {
 
     // Handle the final drop event
     const handleColumnEnd = async (evt) => {
-        const { oldIndex, newIndex } = evt;
+        const { oldIndex, newIndex, item } = evt;
         
-        console.log('=== COLUMN DROP DEBUG ===');
-        console.log('Old Index:', oldIndex);
-        console.log('New Index:', newIndex);
-        console.log('Board ID:', id);
-        
-        // If no change in position, return early
         if (oldIndex === newIndex || oldIndex === undefined || newIndex === undefined) {
-            console.log('No position change, skipping API call');
             return;
         }
 
-        // Persist to backend
+        // Get the new order by manually reordering the array
+        const newColumns = [...columns];
+        const [movedColumn] = newColumns.splice(oldIndex, 1);
+        newColumns.splice(newIndex, 0, movedColumn);
+        const apiPayload = newColumns.map(col => col._id);
+
         try {
-            console.log('Updating column order on backend...');
-            await boardService.updateColumnOrder(id, columns.map(col => col._id));
-            console.log('Column order updated successfully');
+            const result = await boardService.updateColumnOrder(id, apiPayload);
+            
+            if (result.data.columns) {
+                setColumns(result.data.columns);
+                setBoard(prev => ({
+                    ...prev,
+                    columns: result.data.columns
+                }));
+            }
+            
         } catch (error) {
             console.error('Error reordering columns:', error);
-            // Revert on error
             fetchBoard();
             alert('Failed to reorder columns. Please try again.');
         }
