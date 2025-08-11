@@ -21,20 +21,15 @@ const createColumnService = async (boardId, columnData, userId) => {
             );
         }
 
-        const lastColumn = await Columns.findOne({ board: boardId })
-            .sort('-order')
-            .select('order');
-        const newOrder = lastColumn ? lastColumn.order + 1 : 0;
-
         const newColumn = new Columns({
             name: columnData.name,
             board: boardId,
-            order: newOrder,
             isLocked: columnData.isLocked || false
         });
 
         const savedColumn = await newColumn.save();
 
+        // Add the new column to the end of the board's columns array
         await Boards.findByIdAndUpdate(boardId, {
             $push: { columns: savedColumn._id }
         });
@@ -70,6 +65,7 @@ const updateColumnService = async (columnId, updateData, userId) => {
             throw createError(403, 'No permission to update this column');
         }
 
+        // Handle task reordering within the column
         if (updateData.taskOrder) {
             column.tasks = updateData.taskOrder;
             await column.save({ session });
@@ -78,69 +74,17 @@ const updateColumnService = async (columnId, updateData, userId) => {
             return populated;
         }
 
-        if (
-            updateData.order !== undefined &&
-            updateData.order !== column.order
-        ) {
-            const newOrder = updateData.order;
-            const currentOrder = column.order;
-            const boardId = column.board._id;
-
-            const columns = await Columns.find({ board: boardId })
-                .sort({ order: 1 })
-                .session(session);
-
-            if (newOrder < 0 || newOrder >= columns.length) {
-                throw createError(
-                    400,
-                    `Order must be between 0 and ${columns.length - 1}`
-                );
-            }
-
-            if (newOrder > currentOrder) {
-                for (const col of columns) {
-                    if (col._id.equals(columnId)) {
-                        col.order = newOrder;
-                    } else if (
-                        col.order > currentOrder &&
-                        col.order <= newOrder
-                    ) {
-                        col.order -= 1;
-                    }
-                }
-            } else if (newOrder < currentOrder) {
-                for (const col of columns) {
-                    if (col._id.equals(columnId)) {
-                        col.order = newOrder;
-                    } else if (
-                        col.order >= newOrder &&
-                        col.order < currentOrder
-                    ) {
-                        col.order += 1;
-                    }
-                }
-            }
-
-            await Promise.all(columns.map(col => col.save({ session })));
-        }
-
+        // Update other column properties (name, isLocked, etc.)
         Object.keys(updateData).forEach(key => {
-            if (key !== 'taskOrder' && key !== 'order') {
+            if (key !== 'taskOrder') {
                 column[key] = updateData[key];
             }
         });
 
-        if (
-            Object.keys(updateData).some(
-                key => key !== 'taskOrder' && key !== 'order'
-            )
-        ) {
-            await column.save({ session });
-        }
-
+        await column.save({ session });
         await session.commitTransaction();
 
-        return await Columns.findById(columnId).session(session);
+        return column;
     } catch (err) {
         await session.abortTransaction();
         console.error('Error in updateColumnService:', err.message);
@@ -155,33 +99,26 @@ const updateColumnService = async (columnId, updateData, userId) => {
     }
 };
 
-const getNextAvailableOrder = async (boardId, desiredOrder) => {
-    const columns = await Columns.find({ board: boardId })
-        .sort({ order: 1 })
-        .select('order');
-
-    for (let i = desiredOrder; i < columns.length; i++) {
-        if (columns[i].order > i) {
-            return i;
-        }
-    }
-
-    return columns.length;
-};
-
 const getColumnsByBoardService = async (
     boardId,
     userId,
     filterOptions = {}
 ) => {
     try {
-        const { sort = 'order', populateTasks = false } = filterOptions;
+        const { populateTasks = false } = filterOptions;
 
-        // Verify board access
+        // Verify board access and get the board with columns in the correct order
         const board = await Boards.findOne({
             _id: boardId,
             $or: [{ owner: userId }, { 'members.user': userId }]
-        }).select('_id lockedColumns');
+        }).populate({
+            path: 'columns',
+            populate: populateTasks ? {
+                path: 'tasks',
+                select: 'title description assignees dueDate',
+                options: { sort: { createdAt: 1 } }
+            } : undefined
+        }).select('_id lockedColumns columns');
 
         if (!board) {
             throw createError(
@@ -190,43 +127,18 @@ const getColumnsByBoardService = async (
             );
         }
 
-        const query = { board: boardId };
-
-        // Sort options
-        let sortOption = {};
-        if (sort === 'order' || sort === '-order') {
-            sortOption.order = sort === 'order' ? 1 : -1;
-        }
-
-        let columnsQuery = Columns.find(query).sort(sortOption);
-
-        // Optional population
-        if (populateTasks) {
-            columnsQuery = columnsQuery.populate({
-                path: 'tasks',
-                select: 'title description assignees dueDate',
-                options: { sort: { createdAt: 1 } }
-            });
-        }
-
-        const columns = await columnsQuery;
-
         return {
             success: true,
-            count: columns.length,
+            count: board.columns.length,
             data: {
                 boardLocked: board.lockedColumns || false,
-                columns
+                columns: board.columns // Columns are already in the correct order from the board's array
             },
             filters: {
                 applied: { populateTasks },
                 available: {
                     populateTasks: [true, false]
                 }
-            },
-            sort: {
-                applied: sort,
-                available: ['order', '-order']
             }
         };
     } catch (err) {
@@ -298,7 +210,10 @@ const deleteColumnService = async (columnId, userId, options = {}) => {
             }
         }
 
+        // Delete the column
         await Columns.deleteOne({ _id: columnId }).session(session);
+        
+        // Remove the column from the board's columns array
         await Boards.updateOne(
             { _id: column.board._id },
             { $pull: { columns: columnId } }
@@ -335,7 +250,7 @@ const lockColumnService = async (columnId, isLocked, userId) => {
             throw createError(403, 'Only board owner can lock/unlock columns');
         }
 
-        // 3. Update lock status
+        // Update lock status
         column.isLocked = isLocked;
         const updatedColumn = await column.save();
 

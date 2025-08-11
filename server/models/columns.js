@@ -19,10 +19,6 @@ module.exports = mongoose => {
             isLocked: {
                 type: Boolean,
                 default: false
-            },
-            order: {
-                type: Number,
-                required: true
             }
         },
         {
