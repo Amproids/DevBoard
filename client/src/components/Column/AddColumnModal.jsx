@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { columnService } from '../../services/columnService';
 
 function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
@@ -8,6 +8,9 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    
+    // Add ref for the name input
+    const nameInputRef = useRef(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -16,9 +19,18 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
         document.addEventListener('keydown', handleEscape);
         document.body.style.overflow = 'hidden';
 
+        // Auto-focus the name input when modal opens
+        // Use setTimeout to ensure the modal is fully rendered
+        const focusTimeout = setTimeout(() => {
+            if (nameInputRef.current) {
+                nameInputRef.current.focus();
+            }
+        }, 100);
+
         return () => {
             document.removeEventListener('keydown', handleEscape);
             document.body.style.overflow = 'unset';
+            clearTimeout(focusTimeout);
         };
     }, [isOpen, onClose]);
 
@@ -121,6 +133,7 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
                                 Column Name *
                             </label>
                             <input
+                                ref={nameInputRef}
                                 type="text"
                                 id="name"
                                 name="name"
