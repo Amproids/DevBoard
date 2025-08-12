@@ -8,19 +8,17 @@ const ROLE_OPTIONS = [
 	{ value: 'viewer', label: 'Viewer' }
 ];
 
-const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId, onTeamUpdated }) => {
+const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated }) => {
 	const [email, setEmail] = useState('');
 	const [role, setRole] = useState('editor');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [menuOpenId, setMenuOpenId] = useState(null);
-	const [roleChangeLoading, setRoleChangeLoading] = useState({});
+	const [roleChangeLoading, setRoleChangeLoading] = useState(false);
 	const [transferLoading, setTransferLoading] = useState({});
-	const [removeLoading, setRemoveLoading] = useState({});
+	const [removeLoading, setRemoveLoading] = useState(false);
 
-	// Find owner
-	const owner = teams.find(t => t.role === 'owner');
-	const ownerId = owner?.user?._id;
+	const ownerId = board?.owner?._id;
 
 	const handleInputChange = (e) => setEmail(e.target.value);
 
@@ -49,7 +47,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 	};
 
 	const handleRemoveMember = async (memberId) => {
-		setRemoveLoading(prev => ({ ...prev, [memberId]: true }));
+		setRemoveLoading(true);
 		try {
 			alert("Are you sure you want to remove this member?");
 			if (memberId === ownerId) {
@@ -70,7 +68,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 		} catch (error) {
 			setError('Failed to remove member');
 		} finally {
-			setRemoveLoading(prev => ({ ...prev, [memberId]: false }));
+			setRemoveLoading(false);
 			setMenuOpenId(null);
 		}
 	};
@@ -89,7 +87,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 	};
 
 	const handleChangeRole = async (memberId, newRole) => {
-		setRoleChangeLoading(prev => ({ ...prev, [memberId]: true }));
+		setRoleChangeLoading(true);
 		try {
 			if (memberId === ownerId) {
 				setError('Cannot change the role of the owner');
@@ -108,7 +106,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 		} catch (error) {
 			setError('Failed to change role');
 		} finally {
-			setRoleChangeLoading(prev => ({ ...prev, [memberId]: false }));
+			setRoleChangeLoading(false);
 			setMenuOpenId(null);
 		}
 	};
@@ -144,7 +142,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 					</select>
 					<button
 						type="submit"
-						className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+						className="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
 						disabled={loading}
 					>
 						{loading ? "Inviting..." : "Invite"}
@@ -153,6 +151,16 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 				{error && (
 					<div className="mb-4 text-red-600 text-sm">
 						{error}
+					</div>
+				)}
+				{roleChangeLoading && (
+					<div className="mb-4 text-green-600 text-sm">
+						Changing role, please wait...
+					</div>
+				)}
+				{removeLoading && (
+					<div className="mb-4 text-green-600 text-sm">
+						Removing member, please wait...
 					</div>
 				)}
 			</form>
@@ -182,7 +190,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 										{team.role === 'owner' && <option value="owner">Owner</option>}
 									</select>
 									<button
-										className="p-1 rounded hover:bg-gray-100 transition-colors"
+										className="p-1 rounded cursor-pointer hover:bg-gray-100 transition-colors"
 										onClick={() => setMenuOpenId(menuOpenId === team._id ? null : team._id)}
 									>
 										<svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +204,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 											<div className="py-1">
 												{team.role !== 'owner' && (
 													<button
-														className="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50"
+														className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50"
 														onClick={() => handleTransferOwnership(team._id)}
 														disabled={transferLoading[team._id]}
 													>
@@ -205,7 +213,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 												)}
 												{team.role !== 'owner' && (
 													<button
-														className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+														className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
 														onClick={() => handleRemoveMember(team._id)}
 														disabled={removeLoading[team._id]}
 													>
