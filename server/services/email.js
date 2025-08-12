@@ -20,7 +20,7 @@ const sendInvitationEmail = async (email, token, boardName, inviterName) => {
         const templateSource = fs.readFileSync(templatePath, 'utf8');
         const template = handlebars.compile(templateSource);
 
-        const acceptUrl = `${process.env.FRONTEND_URL}/accept-invitation?token=${token}`;
+        const acceptUrl = `${process.env.FRONTEND_URL}/accept-invitation/${token}`;
 
         const html = template({
             boardName,

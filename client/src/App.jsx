@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import Logout from './pages/Logout';
 import Board from './pages/Board';
 import ResetPassword from './pages/ResetPassword';
+import AcceptInvitation from './pages/AcceptInvitation';
 
 function App() {
     const { isAuthenticated, isLoading, login, logout } = useAuth();
@@ -45,6 +46,16 @@ function App() {
                                         isAuthenticated={isAuthenticated}
                                     >
                                         <Dashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/accept-invitation/:token"
+                                element={
+                                    <ProtectedRoute
+                                        isAuthenticated={isAuthenticated}
+                                    >
+                                        <AcceptInvitation />
                                     </ProtectedRoute>
                                 }
                             />

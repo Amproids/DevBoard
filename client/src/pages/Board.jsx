@@ -19,10 +19,12 @@ function Board() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [showAddColumnModal, setShowAddColumnModal] = useState(false);
+    const [showTeamModal, setShowTeamModal] = useState(false);
     const [showEditBoardModal, setShowEditBoardModal] = useState(false);
     const [showRemoveBoardModal, setShowRemoveBoardModal] = useState(false);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-
+    // update state.
+    const [isBoardUpdated, setIsBoardUpdated] = useState(false);
     // Local columns state for sortable
     const [columns, setColumns] = useState([]);
 
@@ -48,7 +50,7 @@ function Board() {
         } finally {
             setLoading(false);
         }
-    }, [id, navigate]);
+    }, [id, navigate, !isBoardUpdated]);
 
     // Update local columns when board columns change
     useEffect(() => {
@@ -65,6 +67,7 @@ function Board() {
 
     const handleBoardUpdate = updatedBoard => {
         setBoard(updatedBoard);
+        setIsBoardUpdated(true);
     };
 
     const handleAddColumn = () => {
@@ -284,7 +287,7 @@ function Board() {
                                                         <button
                                                             className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                                             onClick={() => {
-                                                                setShowEditBoardModal(
+                                                                setShowTeamModal(
                                                                     true
                                                                 );
                                                                 setShowSettingsDropdown(
@@ -436,10 +439,14 @@ function Board() {
             )}
 
             <TeamModal
-                isOpen={false}
-                onClose={() => { }}
+                isOpen={showTeamModal}
+                onClose={() => setShowTeamModal(false)}
                 boardId={id}
                 teams={board?.members || []}
+                board={board}
+                onTeamUpdated={() => {
+                    setIsBoardUpdated(true);
+                }}
             />
 
             <EditBoardModal
