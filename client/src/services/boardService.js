@@ -33,7 +33,10 @@ export const boardService = {
     // Get single board by ID with populated columns/tasks
     async getBoardById(boardId) {
         try {
-            const response = await axios.get(`${API_BASE_URL}/boards/${boardId}`, getAuthHeaders());
+            const response = await axios.get(
+                `${API_BASE_URL}/boards/${boardId}`,
+                getAuthHeaders()
+            );
             return response.data;
         } catch (error) {
             console.error('Error fetching board:', error);
@@ -44,7 +47,11 @@ export const boardService = {
     // Create a new board
     async createBoard(boardData) {
         try {
-            const response = await axios.post(`${API_BASE_URL}/boards`, boardData, getAuthHeaders());
+            const response = await axios.post(
+                `${API_BASE_URL}/boards`,
+                boardData,
+                getAuthHeaders()
+            );
             return response.data;
         } catch (error) {
             console.error('Error creating board:', error);
@@ -55,7 +62,11 @@ export const boardService = {
     // Update a board
     async updateBoard(boardId, boardData) {
         try {
-            const response = await axios.put(`${API_BASE_URL}/boards/${boardId}`, boardData, getAuthHeaders());
+            const response = await axios.put(
+                `${API_BASE_URL}/boards/${boardId}`,
+                boardData,
+                getAuthHeaders()
+            );
             return response.data;
         } catch (error) {
             console.error('Error updating board:', error);
@@ -66,7 +77,10 @@ export const boardService = {
     // Delete a board
     async deleteBoard(boardId) {
         try {
-            const response = await axios.delete(`${API_BASE_URL}/boards/${boardId}`, getAuthHeaders());
+            const response = await axios.delete(
+                `${API_BASE_URL}/boards/${boardId}`,
+                getAuthHeaders()
+            );
             return response.data;
         } catch (error) {
             console.error('Error deleting board:', error);

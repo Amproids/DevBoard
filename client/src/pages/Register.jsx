@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormStatus } from '../hooks/useFormStatus';
 import { useFormChanges } from '../hooks/useFormChanges';
-import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 import OAuthButtons from '../components/Authentication/OAuthButtons';
 import RegisterForm from '../components/Authentication/RegisterForm';
 
 function Register() {
     const navigate = useNavigate();
-    
+
     // Form data state
     const [formData, setFormData] = useState({
         firstName: '',
@@ -21,10 +20,11 @@ function Register() {
     });
 
     // Use custom hooks
-    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
-    const { hasChanges, checkForChanges } = useFormChanges(formData);
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } =
+        useFormStatus();
+    const { checkForChanges } = useFormChanges(formData);
 
-    const handleChange = (event) => {
+    const handleChange = event => {
         const { name, value } = event.target;
         const updatedData = {
             ...formData,
@@ -49,25 +49,26 @@ function Register() {
         }
     };
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async event => {
         event.preventDefault();
-        
+
         try {
             setLoading(true);
-            
+
             // Validate form data
             validateForm();
 
             // Call user service to register
             await userService.register(formData);
 
-            setSuccessMessage('Account created successfully! Redirecting to login...');
+            setSuccessMessage(
+                'Account created successfully! Redirecting to login...'
+            );
 
             // Redirect to login after successful registration
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
-
         } catch (error) {
             console.error('Error creating account:', error);
             setErrorMessage(error);

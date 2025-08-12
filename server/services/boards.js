@@ -157,25 +157,36 @@ const updateColumnOrderService = async (boardId, columnIds, userId) => {
             _id: boardId,
             $or: [
                 { owner: userId },
-                { 'members.user': userId, 'members.role': { $in: ['admin', 'editor'] } }
+                {
+                    'members.user': userId,
+                    'members.role': { $in: ['admin', 'editor'] }
+                }
             ]
         });
 
         if (!board) {
-            throw createError(404, 'Board not found or you dont have permission to modify it');
+            throw createError(
+                404,
+                'Board not found or you dont have permission to modify it'
+            );
         }
 
         // Validate that all provided column IDs belong to this board
         const boardColumnIds = board.columns.map(col => col.toString());
-        const invalidColumns = columnIds.filter(id => !boardColumnIds.includes(id));
-        
+        const invalidColumns = columnIds.filter(
+            id => !boardColumnIds.includes(id)
+        );
+
         if (invalidColumns.length > 0) {
             throw createError(400, 'Invalid column IDs provided');
         }
 
         // Validate that we have all columns (no missing ones)
         if (columnIds.length !== boardColumnIds.length) {
-            throw createError(400, 'All board columns must be included in the reorder');
+            throw createError(
+                400,
+                'All board columns must be included in the reorder'
+            );
         }
 
         // Update the board's columns array with new order
@@ -183,22 +194,27 @@ const updateColumnOrderService = async (boardId, columnIds, userId) => {
             boardId,
             { columns: columnIds },
             { new: true }
-        ).populate({
-            path: 'columns',
-            populate: { 
-                path: 'tasks',
+        )
+            .populate({
+                path: 'columns',
                 populate: {
-                    path: 'assignees',
-                    select: 'firstName lastName avatar email'
+                    path: 'tasks',
+                    populate: {
+                        path: 'assignees',
+                        select: 'firstName lastName avatar email'
+                    }
                 }
-            }
-        }).populate('owner', 'firstName lastName email avatar')
-        .populate('members.user', 'firstName lastName email avatar');
+            })
+            .populate('owner', 'firstName lastName email avatar')
+            .populate('members.user', 'firstName lastName email avatar');
 
         return updatedBoard;
     } catch (err) {
-        console.error('Error in boards.service.js -> updateColumnOrder:', err.message);
-        
+        console.error(
+            'Error in boards.service.js -> updateColumnOrder:',
+            err.message
+        );
+
         if (err.name === 'CastError') {
             throw createError(400, 'Invalid board ID format');
         }
@@ -252,7 +268,7 @@ const getBoardsService = async (userId, filterOptions = {}) => {
             search = ''
         } = filterOptions;
 
-        let query = {
+        const query = {
             $or: [{ owner: userId }, { 'members.user': userId }]
         };
 
@@ -277,14 +293,12 @@ const getBoardsService = async (userId, filterOptions = {}) => {
             ];
         }
 
-        let sortOption = {};
+        const sortOption = {};
         if (sort === 'name' || sort === '-name') {
             sortOption.name = sort === 'name' ? 1 : -1;
-        } 
-        else if (sort === '-updatedAt') {
+        } else if (sort === '-updatedAt') {
             sortOption.updatedAt = -1;
-        }
-        else {
+        } else {
             sortOption.createdAt = sort === 'createdAt' ? 1 : -1;
         }
 
@@ -321,7 +335,13 @@ const getBoardsService = async (userId, filterOptions = {}) => {
             },
             sort: {
                 applied: sort,
-                available: ['name', '-name', 'createdAt', '-createdAt', '-updatedAt']
+                available: [
+                    'name',
+                    '-name',
+                    'createdAt',
+                    '-createdAt',
+                    '-updatedAt'
+                ]
             }
         };
     } catch (err) {
@@ -363,7 +383,10 @@ const getBoardService = async (boardId, userId) => {
             });
 
         if (!board) {
-            throw createError(404, 'Board not found or you dont have permission to view it');
+            throw createError(
+                404,
+                'Board not found or you dont have permission to view it'
+            );
         }
 
         return board;
@@ -373,7 +396,7 @@ const getBoardService = async (boardId, userId) => {
         if (err.name === 'CastError') {
             throw createError(400, 'Invalid board ID format');
         }
-        
+
         throw err;
     }
 };

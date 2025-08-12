@@ -22,7 +22,9 @@ export const useAuth = () => {
             const existingToken = getAuthToken();
             if (existingToken) {
                 // check if expired then logout
-                const tokenPayload = JSON.parse(atob(existingToken.split('.')[1]));
+                const tokenPayload = JSON.parse(
+                    atob(existingToken.split('.')[1])
+                );
                 const isExpired = tokenPayload.exp * 1000 < Date.now();
                 if (isExpired) {
                     removeAuthToken();
@@ -35,7 +37,7 @@ export const useAuth = () => {
         setIsLoading(false);
     }, []);
 
-    const login = (token) => {
+    const login = token => {
         if (token) {
             setAuthToken(token);
         }
@@ -53,6 +55,6 @@ export const useAuth = () => {
         login,
         logout
     };
-}
+};
 
 export default useAuth;

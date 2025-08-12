@@ -44,12 +44,13 @@ module.exports = {
                 }),
             phoneNumber: Joi.string().allow('').optional()
         })
-        .or('email', 'password', 'phoneNumber') // Require at least one field
-        .messages({
-            'object.unknown': 'Unexpected field detected: {{#label}}',
-            'object.missing': 'At least one field (email, password, or phoneNumber) must be provided'
-        });
-        
+            .or('email', 'password', 'phoneNumber') // Require at least one field
+            .messages({
+                'object.unknown': 'Unexpected field detected: {{#label}}',
+                'object.missing':
+                    'At least one field (email, password, or phoneNumber) must be provided'
+            });
+
         return schema.validate(data, {
             abortEarly: false,
             stripUnknown: true

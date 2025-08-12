@@ -11,7 +11,7 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleInputChange = (e) => {
+    const handleInputChange = e => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -19,7 +19,7 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
 
         if (!formData.name.trim()) {
@@ -83,7 +83,10 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="name"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Board Name <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -100,7 +103,10 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
                     </div>
 
                     <div className="mb-4">
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="description"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Description (Optional)
                         </label>
                         <textarea
@@ -121,14 +127,14 @@ function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
                         </p>
                         <CreateTags
                             tags={formData.tags}
-                            setTags={(tags) => setFormData((prev) => ({ ...prev, tags }))}
+                            setTags={tags =>
+                                setFormData(prev => ({ ...prev, tags }))
+                            }
                         />
                     </div>
 
                     {error && (
-                        <div className="mb-4 text-red-600 text-sm">
-                            {error}
-                        </div>
+                        <div className="mb-4 text-red-600 text-sm">{error}</div>
                     )}
 
                     <div className="flex gap-3 justify-end">

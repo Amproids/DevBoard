@@ -1,7 +1,6 @@
 const createError = require('http-errors');
 const Tasks = require('../models').tasks;
 const Columns = require('../models').columns;
-const Boards = require('../models').boards;
 const Users = require('../models').users;
 const Comments = require('../models').comments;
 const Attachments = require('../models').attachments;
@@ -292,13 +291,13 @@ const deleteTaskService = async (taskId, userId) => {
 const moveTaskService = async (taskId, moveData, userId) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         console.log('=== MOVE TASK SERVICE START ===');
         console.log('TaskId:', taskId);
         console.log('Target Column:', moveData.targetColumnId);
         console.log('New Order:', moveData.newOrder);
-        
+
         const task = await Tasks.findById(taskId)
             .populate({
                 path: 'column',
@@ -309,65 +308,74 @@ const moveTaskService = async (taskId, moveData, userId) => {
                 }
             })
             .session(session);
-            
+
         if (!task) throw createError(404, 'Task not found');
-        
+
         console.log('Current Column:', task.column._id);
-        console.log('Is same column?', task.column.equals(moveData.targetColumnId));
-        
+        console.log(
+            'Is same column?',
+            task.column.equals(moveData.targetColumnId)
+        );
+
         const currentBoard = task.column.board;
         const hasCurrentAccess =
             currentBoard.owner.equals(userId) ||
             currentBoard.members.some(m => m.user.equals(userId));
-            
+
         if (!hasCurrentAccess) {
             throw createError(403, 'No permission to move this task');
         }
-        
+
         const targetColumn = await Columns.findOne({
             _id: moveData.targetColumnId,
             board: currentBoard._id
         }).session(session);
-        
+
         if (!targetColumn) {
             throw createError(400, 'Target column not found in this board');
         }
-        
-        const isMovingWithinSameColumn = task.column.equals(moveData.targetColumnId);
-        const maxOrder = isMovingWithinSameColumn ? targetColumn.tasks.length - 1 : targetColumn.tasks.length;
-        
+
+        const isMovingWithinSameColumn = task.column.equals(
+            moveData.targetColumnId
+        );
+        const maxOrder = isMovingWithinSameColumn
+            ? targetColumn.tasks.length - 1
+            : targetColumn.tasks.length;
+
         if (moveData.newOrder < 0 || moveData.newOrder > maxOrder) {
             throw createError(400, `Order must be between 0 and ${maxOrder}`);
         }
-        
+
         await Columns.updateOne(
             { _id: task.column._id },
             { $pull: { tasks: taskId } }
         ).session(session);
-        
+
         console.log('Removed task from column:', task.column._id);
-        
-        const targetCol = await Columns.findById(moveData.targetColumnId).session(session);
-        
+
+        const targetCol = await Columns.findById(
+            moveData.targetColumnId
+        ).session(session);
+
         console.log('Target column tasks before insert:', targetCol.tasks);
-        
+
         const tasksArray = [...targetCol.tasks];
         tasksArray.splice(moveData.newOrder, 0, taskId);
-        
+
         console.log('Target column tasks after insert:', tasksArray);
-        
+
         await Columns.updateOne(
             { _id: moveData.targetColumnId },
             { $set: { tasks: tasksArray } }
         ).session(session);
-        
+
         task.column = moveData.targetColumnId;
         await task.save({ session });
-        
+
         await session.commitTransaction();
-        
+
         console.log('=== MOVE COMPLETE ===');
-        
+
         return {
             taskId: task._id,
             previousColumnId: task.column._id,
@@ -551,7 +559,7 @@ const getColumnTasksService = async (columnId, userId, filterOptions = {}) => {
             );
         }
 
-        let query = { column: columnId };
+        const query = { column: columnId };
 
         switch (filter) {
             case 'completed':
@@ -577,7 +585,7 @@ const getColumnTasksService = async (columnId, userId, filterOptions = {}) => {
             ];
         }
 
-        let sortOption = {};
+        const sortOption = {};
         switch (sort) {
             case 'dueDate':
                 sortOption.dueDate = 1;

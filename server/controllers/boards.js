@@ -110,11 +110,7 @@ const updateColumnOrderController = async (req, res, next) => {
     } catch (err) {
         console.error('Error in updateColumnOrderController:', err.message);
 
-        if (
-            err.status === 400 ||
-            err.status === 403 ||
-            err.status === 404
-        ) {
+        if (err.status === 400 || err.status === 403 || err.status === 404) {
             next(err);
         } else {
             next(createError(500, 'Error updating column order'));
@@ -216,7 +212,7 @@ const getBoardController = async (req, res, next) => {
         });
     } catch (err) {
         console.error('Error in getBoardController:', err.message);
-        
+
         if (err.status === 400 || err.status === 403 || err.status === 404) {
             next(err);
         } else {

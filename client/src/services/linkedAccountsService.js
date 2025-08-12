@@ -14,9 +14,9 @@ export const linkedAccountsService = {
             const response = await axios.get(`${API_BASE_URL}/profiles`, {
                 headers: authService.getAuthHeaders()
             });
-            
+
             const userData = response.data.data;
-            
+
             // Transform user data into login methods format
             const loginMethods = {
                 hasPassword: userData.hasPassword || false,
@@ -33,7 +33,7 @@ export const linkedAccountsService = {
                     }
                 ]
             };
-            
+
             return { data: loginMethods };
         } catch (error) {
             console.error('Error fetching linked accounts:', error);
@@ -50,12 +50,14 @@ export const linkedAccountsService = {
         try {
             // Store current location to return after linking
             localStorage.setItem('returnAfterLink', window.location.pathname);
-            
+
             // Use existing OAuth redirect from authService (remove await)
             authService.redirectToOAuth(provider);
         } catch (error) {
             console.error(`Error linking ${provider} account:`, error);
-            throw new Error(`Failed to link ${provider} account. Please try again.`);
+            throw new Error(
+                `Failed to link ${provider} account. Please try again.`
+            );
         }
     },
 
@@ -68,15 +70,19 @@ export const linkedAccountsService = {
         try {
             const fieldName = provider === 'google' ? 'googleId' : 'githubId';
             const updateData = { [fieldName]: null };
-            
+
             // If unlinking GitHub, also clear username
             if (provider === 'github') {
                 updateData.username = null;
             }
-            
-            const response = await axios.put(`${API_BASE_URL}/profiles`, updateData, {
-                headers: authService.getAuthHeaders()
-            });
+
+            const response = await axios.put(
+                `${API_BASE_URL}/profiles`,
+                updateData,
+                {
+                    headers: authService.getAuthHeaders()
+                }
+            );
             return response.data;
         } catch (error) {
             console.error(`Error unlinking ${provider} account:`, error);
@@ -92,12 +98,16 @@ export const linkedAccountsService = {
     async setPassword(passwordData) {
         try {
             this.validatePasswordData(passwordData);
-            
-            const { confirmPassword, ...dataToSend } = passwordData;
+
+            const { confirmPassword: _, ...dataToSend } = passwordData;
             // Use the profiles credentials endpoint (fix: use singular 'credential')
-            const response = await axios.put(`${API_BASE_URL}/profiles/credential`, dataToSend, {
-                headers: authService.getAuthHeaders()
-            });
+            const response = await axios.put(
+                `${API_BASE_URL}/profiles/credential`,
+                dataToSend,
+                {
+                    headers: authService.getAuthHeaders()
+                }
+            );
             return response.data;
         } catch (error) {
             console.error('Error setting password:', error);
@@ -130,7 +140,7 @@ export const linkedAccountsService = {
         const otherLinkedAccounts = linkedAccounts.filter(
             account => account.provider !== providerToUnlink && account.isLinked
         );
-        
+
         // Safe if user has password OR other linked accounts
         return hasPassword || otherLinkedAccounts.length > 0;
     }

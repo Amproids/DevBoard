@@ -12,30 +12,36 @@ export const useFormStatus = (messageDuration = 5000) => {
     });
     const [loading, setLoading] = useState(false);
 
-    const setSuccessMessage = useCallback((message) => {
-        setStatus({ success: true, message});
+    const setSuccessMessage = useCallback(
+        message => {
+            setStatus({ success: true, message });
 
-        if (messageDuration > 0) {
-            setTimeout(() => {
-                setStatus({ success: false, message: '' });
-            }, messageDuration);
-        
-        }
-    }, [messageDuration]);
+            if (messageDuration > 0) {
+                setTimeout(() => {
+                    setStatus({ success: false, message: '' });
+                }, messageDuration);
+            }
+        },
+        [messageDuration]
+    );
 
-    const setErrorMessage = useCallback((error) => {
-        const message = error.response?.data?.message ||
-            error.message ||
-            'An error occurred';
+    const setErrorMessage = useCallback(
+        error => {
+            const message =
+                error.response?.data?.message ||
+                error.message ||
+                'An error occurred';
 
-    setStatus({ success: false, message });
+            setStatus({ success: false, message });
 
-    if (messageDuration > 0) {
-        setTimeout(() => {
-            setStatus({ success: false, message: '' });
-        }, messageDuration);
-    }
-    }, [messageDuration]);
+            if (messageDuration > 0) {
+                setTimeout(() => {
+                    setStatus({ success: false, message: '' });
+                }, messageDuration);
+            }
+        },
+        [messageDuration]
+    );
 
     const resetStatus = useCallback(() => {
         setStatus({ success: false, message: '' });
@@ -48,5 +54,5 @@ export const useFormStatus = (messageDuration = 5000) => {
         setSuccessMessage,
         setErrorMessage,
         resetStatus
-    }
-}
+    };
+};

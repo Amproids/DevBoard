@@ -16,14 +16,14 @@ function ResetPassword() {
     const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
 
-    const handleInputChange = (e) => {
+    const handleInputChange = e => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
     };
 
-    const handleSendCode = async (e) => {
+    const handleSendCode = async e => {
         e.preventDefault();
         setLoading(true);
         setError('');
@@ -33,13 +33,16 @@ function ResetPassword() {
             });
             setIsCodeSent(true);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to send reset code. Please try again.');
+            setError(
+                err.response?.data?.message ||
+                    'Failed to send reset code. Please try again.'
+            );
         } finally {
             setLoading(false);
         }
     };
 
-    const handleResetPassword = async (e) => {
+    const handleResetPassword = async e => {
         e.preventDefault();
         setLoading(true);
         setError('');
@@ -62,7 +65,10 @@ function ResetPassword() {
             setSuccess(true);
             setTimeout(() => navigate('/login'), 3000);
         } catch (err) {
-            setError('Reset password failed. Please try again.');
+            setError(
+                err.response?.data?.message ||
+                    'Reset password failed. Please try again.'
+            );
         } finally {
             setLoading(false);
         }
@@ -113,7 +119,10 @@ function ResetPassword() {
                     )}
 
                     {isCodeSent && (
-                        <form onSubmit={handleResetPassword} className="space-y-4">
+                        <form
+                            onSubmit={handleResetPassword}
+                            className="space-y-4"
+                        >
                             <input
                                 type="text"
                                 name="code"
@@ -124,7 +133,7 @@ function ResetPassword() {
                                 aria-label="Reset Code"
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
                                 required
-                                autoComplete='off'
+                                autoComplete="off"
                             />
                             <input
                                 type="password"
@@ -136,7 +145,7 @@ function ResetPassword() {
                                 aria-label="New Password"
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
                                 required
-                                autoComplete='new-password'
+                                autoComplete="new-password"
                             />
                             <input
                                 type="password"
@@ -148,7 +157,7 @@ function ResetPassword() {
                                 aria-label="Confirm Password"
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200"
                                 required
-                                autoComplete='new-password'
+                                autoComplete="new-password"
                             />
                             <button
                                 type="submit"
@@ -158,7 +167,9 @@ function ResetPassword() {
                                 {loading ? 'Resetting...' : 'Reset Password'}
                             </button>
                             <p className="text-sm text-gray-600">
-                                Your code is sent to your email after a few seconds. It will expire in 7 minutes. Wait before
+                                Your code is sent to your email after a few
+                                seconds. It will expire in 7 minutes. Wait
+                                before
                                 <button
                                     type="button"
                                     className="text-blue-600 ml-1 cursor-pointer hover:underline"
@@ -187,7 +198,10 @@ function ResetPassword() {
 
                     {/* Additional links */}
                     <div className="mt-6 text-center">
-                        <Link to="/login" className="text-sm text-gray-600 hover:text-gray-900">
+                        <Link
+                            to="/login"
+                            className="text-sm text-gray-600 hover:text-gray-900"
+                        >
                             Back to login
                         </Link>
                     </div>

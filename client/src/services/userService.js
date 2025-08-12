@@ -44,7 +44,10 @@ export const userService = {
      */
     async updateUser(userId, userData) {
         try {
-            const response = await axios.put(`${API_BASE_URL}/users/${userId}`, userData);
+            const response = await axios.put(
+                `${API_BASE_URL}/users/${userId}`,
+                userData
+            );
             return response.data;
         } catch (error) {
             console.error('Error updating user:', error);
@@ -59,7 +62,9 @@ export const userService = {
      */
     async deleteUser(userId) {
         try {
-            const response = await axios.delete(`${API_BASE_URL}/users/${userId}`);
+            const response = await axios.delete(
+                `${API_BASE_URL}/users/${userId}`
+            );
             return response.data;
         } catch (error) {
             console.error('Error deleting user:', error);
