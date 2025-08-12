@@ -6,13 +6,13 @@ const TOKEN_KEY = 'authToken';
  */
 export function getAuthToken() {
     return localStorage.getItem(TOKEN_KEY);
-};
+}
 
 /**
  * Set authentication token in localStorage
  * @param {string} token - Token value to be set
  */
-export const setAuthToken = (token) => {
+export const setAuthToken = token => {
     localStorage.setItem(TOKEN_KEY, token);
 };
 
@@ -21,7 +21,7 @@ export const setAuthToken = (token) => {
  */
 export const removeAuthToken = () => {
     localStorage.removeItem(TOKEN_KEY);
-};  
+};
 
 /**
  * Check if user is authenticated
@@ -41,7 +41,11 @@ export const extractTokenFromUrl = () => {
 
     if (token) {
         setAuthToken(token);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+        );
     }
     return token;
-}
+};

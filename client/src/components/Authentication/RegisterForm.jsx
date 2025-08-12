@@ -1,17 +1,20 @@
 import React from 'react';
 
-function RegisterForm({ 
-    formData, 
-    loading = false, 
-    status = {}, 
-    onChange, 
-    onSubmit 
+function RegisterForm({
+    formData,
+    loading = false,
+    status = {},
+    onChange,
+    onSubmit
 }) {
     return (
         <form onSubmit={onSubmit} className="space-y-6">
             {/* First Name */}
             <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-gray-700"
+                >
                     First Name <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -31,7 +34,10 @@ function RegisterForm({
 
             {/* Last Name */}
             <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-gray-700"
+                >
                     Last Name <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -51,7 +57,10 @@ function RegisterForm({
 
             {/* Email */}
             <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700"
+                >
                     Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -71,7 +80,10 @@ function RegisterForm({
 
             {/* Phone Number */}
             <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-gray-700"
+                >
                     Phone Number
                 </label>
                 <div className="mt-1">
@@ -90,7 +102,10 @@ function RegisterForm({
 
             {/* Password */}
             <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700"
+                >
                     Password <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -111,7 +126,10 @@ function RegisterForm({
 
             {/* Confirm Password */}
             <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700"
+                >
                     Confirm Password <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -132,7 +150,9 @@ function RegisterForm({
 
             {/* Status Messages */}
             {status.message && (
-                <div className={`p-3 rounded-md ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                <div
+                    className={`p-3 rounded-md ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}
+                >
                     {status.message}
                 </div>
             )}

@@ -12,7 +12,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleInputChange = (e) => {
+    const handleInputChange = e => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -20,9 +20,9 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        
+
         if (!formData.title.trim()) {
             setError('Task title is required');
             return;
@@ -31,13 +31,15 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
         try {
             setLoading(true);
             setError('');
-            
+
             const taskData = {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
                 priority: formData.priority,
                 ...(formData.dueDate && { dueDate: formData.dueDate }),
-                ...(formData.assignees.length > 0 && { assignees: formData.assignees })
+                ...(formData.assignees.length > 0 && {
+                    assignees: formData.assignees
+                })
             };
 
             const response = await taskService.createTask(columnId, taskData);
@@ -95,7 +97,10 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                 <form onSubmit={handleSubmit}>
                     {/* Task Title */}
                     <div className="mb-4">
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="title"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Task Title *
                         </label>
                         <input
@@ -113,7 +118,10 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
 
                     {/* Task Description */}
                     <div className="mb-4">
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="description"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Description (Optional)
                         </label>
                         <textarea
@@ -131,7 +139,10 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
 
                     {/* Priority */}
                     <div className="mb-4">
-                        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="priority"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Priority
                         </label>
                         <select
@@ -150,7 +161,10 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
 
                     {/* Due Date */}
                     <div className="mb-4">
-                        <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="dueDate"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Due Date (Optional)
                         </label>
                         <input
@@ -168,17 +182,26 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                     {/* Note about assignees */}
                     <div className="mb-4 p-3 bg-blue-50 rounded-md">
                         <p className="text-sm text-blue-700">
-                            <svg className="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg
+                                className="inline w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
                             </svg>
-                            You can assign team members to this task after creating it.
+                            You can assign team members to this task after
+                            creating it.
                         </p>
                     </div>
 
                     {error && (
-                        <div className="mb-4 text-red-600 text-sm">
-                            {error}
-                        </div>
+                        <div className="mb-4 text-red-600 text-sm">{error}</div>
                     )}
 
                     <div className="flex gap-3 justify-end">

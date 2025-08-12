@@ -388,7 +388,11 @@ router.post('/', ensureAuth, boardController.createBoardController);
  *       500:
  *         description: Server error
  */
-router.put('/:id/column-order', ensureAuth, boardController.updateColumnOrderController);
+router.put(
+    '/:id/column-order',
+    ensureAuth,
+    boardController.updateColumnOrderController
+);
 
 /**
  * @swagger

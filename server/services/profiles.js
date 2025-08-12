@@ -9,7 +9,7 @@ module.exports = {
             if (!user) {
                 throw createError(404, 'User not found');
             }
-            
+
             // Update basic profile fields
             if (updateData.firstName !== undefined) {
                 user.firstName = updateData.firstName;
@@ -18,13 +18,14 @@ module.exports = {
                 user.lastName = updateData.lastName;
             }
             if (updateData.displayName !== undefined) {
-                user.displayName = updateData.displayName || updateData.firstName;
+                user.displayName =
+                    updateData.displayName || updateData.firstName;
             }
             // TODO - file management with avatar
             // if (updateData.avatar !== undefined) {
             //     user.avatar = updateData.avatar;
             // }
-            
+
             // Support unlinking OAuth accounts (setting to null)
             if (updateData.googleId !== undefined) {
                 user.googleId = updateData.googleId;
@@ -35,7 +36,7 @@ module.exports = {
             if (updateData.username !== undefined) {
                 user.username = updateData.username;
             }
-            
+
             const updatedUser = await user.save();
             const userToReturn = updatedUser.toObject();
             delete userToReturn.password;
@@ -74,7 +75,7 @@ module.exports = {
             if (!user) {
                 throw createError(404, 'User not found');
             }
-            
+
             // Update fields only if provided
             if (updateData.email !== undefined) {
                 user.email = updateData.email;
@@ -85,7 +86,7 @@ module.exports = {
             if (updateData.phoneNumber !== undefined) {
                 user.phoneNumber = updateData.phoneNumber;
             }
-            
+
             const updatedUser = await user.save();
             const userToReturn = updatedUser.toObject();
             delete userToReturn.password;

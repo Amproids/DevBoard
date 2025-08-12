@@ -12,9 +12,13 @@ export const credentialsService = {
     async updateCredentials(credentials) {
         //Remove confirm password before sending to API
         const { confirmPassword: _, ...credentialsToSend } = credentials;
-        return axios.put(`${API_BASE_URL}/profiles/credential`, credentialsToSend, {
-            headers: authService.getAuthHeaders()
-        })
+        return axios.put(
+            `${API_BASE_URL}/profiles/credential`,
+            credentialsToSend,
+            {
+                headers: authService.getAuthHeaders()
+            }
+        );
     },
 
     /**
@@ -33,4 +37,4 @@ export const credentialsService = {
             throw new Error('Please enter a valid email address');
         }
     }
-}
+};

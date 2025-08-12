@@ -7,7 +7,7 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isFavorite, setIsFavorite] = useState(board.isFavorite || false);
 
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -21,10 +21,13 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
 
     const getOwnerName = () => {
         if (!board.owner) return 'Unknown';
-        return `${board.owner.firstName || ''} ${board.owner.lastName || ''}`.trim() || 'Unknown';
+        return (
+            `${board.owner.firstName || ''} ${board.owner.lastName || ''}`.trim() ||
+            'Unknown'
+        );
     };
 
-    const handleFavoriteToggle = async (e) => {
+    const handleFavoriteToggle = async e => {
         e.stopPropagation(); // Prevent card click when clicking favorite
 
         try {
@@ -43,7 +46,6 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
             if (onBoardUpdated) {
                 onBoardUpdated(response.data);
             }
-
         } catch (error) {
             // Revert optimistic update on error
             setIsFavorite(!isFavorite);
@@ -66,13 +68,21 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
             <button
                 onClick={handleFavoriteToggle}
                 disabled={isUpdating}
-                className={`absolute cursor-pointer top-4 right-4 p-1 rounded-full transition-colors ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'
-                    }`}
-                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                className={`absolute cursor-pointer top-4 right-4 p-1 rounded-full transition-colors ${
+                    isUpdating
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'hover:bg-gray-100 cursor-pointer'
+                }`}
+                title={
+                    isFavorite ? 'Remove from favorites' : 'Add to favorites'
+                }
             >
                 <svg
-                    className={`w-5 h-5 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 hover:text-red-500'
-                        }`}
+                    className={`w-5 h-5 transition-colors ${
+                        isFavorite
+                            ? 'text-red-500 fill-current'
+                            : 'text-gray-400 hover:text-red-500'
+                    }`}
                     fill={isFavorite ? 'currentColor' : 'none'}
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -87,7 +97,8 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
             </button>
 
             {/* Board Header */}
-            <div className="mb-3 pr-8">{/* Add right padding to avoid favorite button */}
+            <div className="mb-3 pr-8">
+                {/* Add right padding to avoid favorite button */}
                 <h2 className="text-xl font-semibold text-gray-900 mb-1 line-clamp-1">
                     {board.name}
                 </h2>
@@ -123,16 +134,36 @@ function BoardPreviewCard({ board, onBoardUpdated }) {
             <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                            />
                         </svg>
                         <span>{getMemberCount()} members</span>
                     </div>
 
                     {board.lockedColumns && (
                         <div className="flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            <svg
+                                className="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                />
                             </svg>
                             <span>Locked</span>
                         </div>

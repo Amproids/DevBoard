@@ -9,7 +9,7 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleInputChange = (e) => {
+    const handleInputChange = e => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -17,9 +17,9 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        
+
         if (!formData.name.trim()) {
             setError('Column name is required');
             return;
@@ -28,13 +28,16 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
         try {
             setLoading(true);
             setError('');
-            
+
             const columnData = {
                 name: formData.name.trim(),
                 isLocked: formData.isLocked
             };
 
-            const response = await columnService.createColumn(boardId, columnData);
+            const response = await columnService.createColumn(
+                boardId,
+                columnData
+            );
 
             // Call the callback to refresh board data
             if (onColumnCreated) {
@@ -46,7 +49,9 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
             onClose();
         } catch (error) {
             console.error('Error creating column:', error);
-            setError(error.response?.data?.message || 'Failed to create column');
+            setError(
+                error.response?.data?.message || 'Failed to create column'
+            );
         } finally {
             setLoading(false);
         }
@@ -76,7 +81,10 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="name"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Column Name *
                         </label>
                         <input
@@ -102,14 +110,14 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
                                 disabled={loading}
                                 className="mr-2"
                             />
-                            <span className="text-sm text-gray-700">Lock column (prevents modifications)</span>
+                            <span className="text-sm text-gray-700">
+                                Lock column (prevents modifications)
+                            </span>
                         </label>
                     </div>
 
                     {error && (
-                        <div className="mb-4 text-red-600 text-sm">
-                            {error}
-                        </div>
+                        <div className="mb-4 text-red-600 text-sm">{error}</div>
                     )}
 
                     <div className="flex gap-3 justify-end">

@@ -10,10 +10,10 @@ import OAuthButtons from '../components/Authentication/OAuthButtons';
 function Login({ setIsAuthenticated }) {
     const navigate = useNavigate();
     const { login } = useAuth();
-    
+
     // Use the prop if provided, otherwise use the hook
     const handleLogin = setIsAuthenticated || login;
-    
+
     // Form data state
     const [formData, setFormData] = useState({
         email: '',
@@ -21,10 +21,11 @@ function Login({ setIsAuthenticated }) {
     });
 
     // Use custom hooks
-    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } =
+        useFormStatus();
     const { checkForChanges } = useFormChanges(formData);
 
-    const handleInputChange = (e) => {
+    const handleInputChange = e => {
         const { name, value } = e.target;
         const updatedData = {
             ...formData,
@@ -46,12 +47,12 @@ function Login({ setIsAuthenticated }) {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        
+
         try {
             setLoading(true);
-            
+
             // Validate form data
             validateForm();
 
@@ -63,18 +64,17 @@ function Login({ setIsAuthenticated }) {
 
             // Handle successful login
             const { token } = response.data;
-            
+
             // Store token and update auth state
             setAuthToken(token);
             handleLogin(token);
-            
+
             setSuccessMessage('Login successful! Redirecting...');
-            
+
             // Redirect to dashboard
             setTimeout(() => {
                 navigate('/dashboard');
             }, 1000);
-            
         } catch (error) {
             console.error('Login error:', error);
             setErrorMessage(error);
@@ -129,7 +129,7 @@ function Login({ setIsAuthenticated }) {
                         <input
                             type="email"
                             name="email"
-                            id='email'
+                            id="email"
                             value={formData.email}
                             onChange={handleInputChange}
                             placeholder="Email"
@@ -137,11 +137,13 @@ function Login({ setIsAuthenticated }) {
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             required
                         />
-                        <label htmlFor="password" aria-hidden="true" hidden>Password</label>
+                        <label htmlFor="password" aria-hidden="true" hidden>
+                            Password
+                        </label>
                         <input
                             type="password"
                             name="password"
-                            id='password'
+                            id="password"
                             value={formData.password}
                             onChange={handleInputChange}
                             placeholder="Password"
@@ -160,14 +162,19 @@ function Login({ setIsAuthenticated }) {
 
                     {/* Status Messages */}
                     {status.message && (
-                        <div className={`mt-4 p-3 rounded-lg ${status.success ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`}>
+                        <div
+                            className={`mt-4 p-3 rounded-lg ${status.success ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`}
+                        >
                             {status.message}
                         </div>
                     )}
 
                     {/* Additional links */}
                     <div className="mt-6 text-center">
-                        <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm text-gray-600 hover:text-gray-900"
+                        >
                             Forgot your password?
                         </Link>
                     </div>

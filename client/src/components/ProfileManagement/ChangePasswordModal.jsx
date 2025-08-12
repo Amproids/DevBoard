@@ -3,22 +3,26 @@ import { credentialsService } from '../../services/credentialsService';
 import { useFormStatus } from '../../hooks/useFormStatus';
 
 function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
-    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
-    
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } =
+        useFormStatus();
+
     const [passwordData, setPasswordData] = useState({
         password: '',
         confirmPassword: ''
     });
 
     // Check if form is valid and get validation errors
-    const passwordTooShort = passwordData.password.length > 0 && passwordData.password.length < 6;
-    const passwordsMismatch = passwordData.password.length > 0 && 
-                             passwordData.confirmPassword.length > 0 && 
-                             passwordData.password !== passwordData.confirmPassword;
-    
-    const isFormValid = passwordData.password.length >= 6 && 
-                       passwordData.confirmPassword.length >= 6 &&
-                       passwordData.password === passwordData.confirmPassword;
+    const passwordTooShort =
+        passwordData.password.length > 0 && passwordData.password.length < 6;
+    const passwordsMismatch =
+        passwordData.password.length > 0 &&
+        passwordData.confirmPassword.length > 0 &&
+        passwordData.password !== passwordData.confirmPassword;
+
+    const isFormValid =
+        passwordData.password.length >= 6 &&
+        passwordData.confirmPassword.length >= 6 &&
+        passwordData.password === passwordData.confirmPassword;
 
     // Reset form when modal closes
     useEffect(() => {
@@ -30,7 +34,7 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
         }
     }, [isOpen]);
 
-    const handleChange = (event) => {
+    const handleChange = event => {
         const { name, value } = event.target;
         setPasswordData(prev => ({
             ...prev,
@@ -38,38 +42,37 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
         }));
     };
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async event => {
         event.preventDefault();
         setLoading(true);
-        
+
         try {
             // Create credentials object for validation
             const credentials = {
                 password: passwordData.password,
                 confirmPassword: passwordData.confirmPassword
             };
-            
+
             credentialsService.validateCredentials(credentials);
             await credentialsService.updateCredentials(credentials);
-            
+
             setSuccessMessage('Password updated successfully');
-            
+
             // Reset form
             setPasswordData({
                 password: '',
                 confirmPassword: ''
             });
-            
+
             // Call parent callback to refresh data if provided
             if (onPasswordUpdate) {
                 await onPasswordUpdate();
             }
-            
+
             // Close modal after successful update
             setTimeout(() => {
                 onClose();
             }, 1500);
-            
         } catch (error) {
             console.error('Error updating password:', error);
             setErrorMessage(error);
@@ -78,7 +81,7 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
         }
     };
 
-    const handleBackdropClick = (e) => {
+    const handleBackdropClick = e => {
         if (e.target === e.currentTarget) {
             onClose();
         }
@@ -87,22 +90,34 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
     if (!isOpen) return null;
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
             onClick={handleBackdropClick}
         >
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                        Change Password
+                    </h2>
                     <button
                         onClick={onClose}
                         className="p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                         disabled={loading}
                         aria-label="Close modal"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
                         </svg>
                     </button>
                 </div>
@@ -110,7 +125,10 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="modal-password" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="modal-password"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             New Password <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -126,13 +144,19 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
                             required
                         />
                         {passwordTooShort && (
-                            <p className="text-red-500 text-sm mt-1">Password must be at least 6 characters long</p>
+                            <p className="text-red-500 text-sm mt-1">
+                                Password must be at least 6 characters long
+                            </p>
                         )}
                     </div>
-                    
+
                     <div>
-                        <label htmlFor="modal-confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm New Password <span className="text-red-500">*</span>
+                        <label
+                            htmlFor="modal-confirmPassword"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Confirm New Password{' '}
+                            <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="password"
@@ -147,13 +171,17 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
                             required
                         />
                         {passwordsMismatch && (
-                            <p className="text-red-500 text-sm mt-1">Passwords must match</p>
+                            <p className="text-red-500 text-sm mt-1">
+                                Passwords must match
+                            </p>
                         )}
                     </div>
 
                     {/* Status Message */}
                     {status.message && (
-                        <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        <div
+                            className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}
+                        >
                             {status.message}
                         </div>
                     )}

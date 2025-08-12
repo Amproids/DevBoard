@@ -22,7 +22,7 @@ export const profileService = {
             return axios.put(`${API_BASE_URL}/profiles`, formData, {
                 headers: {
                     ...authService.getAuthHeaders(),
-                    'Content-Type' : 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data'
                 }
             });
         }
@@ -39,6 +39,6 @@ export const profileService = {
     async getProfile() {
         return axios.get(`${API_BASE_URL}/profiles`, {
             headers: authService.getAuthHeaders()
-        })
+        });
     }
-}
+};

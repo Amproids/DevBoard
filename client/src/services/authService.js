@@ -29,7 +29,9 @@ export const authService = {
             window.location.href = url;
         } catch (error) {
             console.error(`Error redirecting to ${provider}:`, error);
-            throw new Error(`${provider} authentication failed. Please try again.`);
+            throw new Error(
+                `${provider} authentication failed. Please try again.`
+            );
         }
     },
 
@@ -40,7 +42,10 @@ export const authService = {
      */
     async login(credentials) {
         try {
-            const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+            const response = await axios.post(
+                `${API_BASE_URL}/auth/login`,
+                credentials
+            );
             return response.data;
         } catch (error) {
             console.error('Error logging in:', error);
@@ -54,9 +59,13 @@ export const authService = {
      */
     async refreshToken() {
         try {
-            const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await axios.post(
+                `${API_BASE_URL}/auth/refresh`,
+                {},
+                {
+                    headers: this.getAuthHeaders()
+                }
+            );
             return response.data;
         } catch (error) {
             console.error('Error refreshing token:', error);
@@ -72,9 +81,9 @@ export const authService = {
         try {
             const response = await axios.get(`${API_BASE_URL}/profiles`, {
                 headers: this.getAuthHeaders()
-            }); 
+            });
             const userId = response.data.data._id;
-            
+
             await axios.delete(`${API_BASE_URL}/users/${userId}`, {
                 headers: this.getAuthHeaders()
             });
@@ -82,8 +91,8 @@ export const authService = {
             this.logout();
             return { success: true };
         } catch (error) {
-           console.error('Error deactivating account:', error);
-           throw error;
+            console.error('Error deactivating account:', error);
+            throw error;
         }
     },
 
