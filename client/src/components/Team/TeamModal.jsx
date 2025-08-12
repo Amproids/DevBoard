@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Modal from '../Shared/Modal';
 import { teamService } from '../../services/teamService';
 
@@ -11,6 +11,7 @@ const ROLE_OPTIONS = [
 const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated }) => {
 	const [email, setEmail] = useState('');
 	const [role, setRole] = useState('editor');
+	const [userId, setUserId] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [menuOpenId, setMenuOpenId] = useState(null);
@@ -21,6 +22,14 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 	const ownerId = board?.owner?._id;
 
 	const handleInputChange = (e) => setEmail(e.target.value);
+
+	useEffect(() => {
+		const token = localStorage.getItem('authToken');
+		if (token) {
+			const payload = JSON.parse(atob(token.split('.')[1]));
+			setUserId(payload.id);
+		}
+	}, []);
 
 	const handleInvite = async (e) => {
 		e.preventDefault();
@@ -199,9 +208,9 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 										</svg>
 									</button>
 									{menuOpenId === team._id && (
-										<div className="absolute right-0 top-8 w-44 bg-white rounded-md shadow-lg border z-20">
+										<div className="absolute right-0 top-10 w-44 bg-white rounded-md border border-gray-400 shadow-lg z-20">
 											<div className="py-1">
-												{team.role !== 'owner' && (
+												{userId === ownerId && (
 													<button
 														className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50"
 														onClick={() => handleTransferOwnership(team._id)}
@@ -210,7 +219,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 														{transferLoading[team._id] ? "Transferring..." : "Transfer Ownership"}
 													</button>
 												)}
-												{team.role !== 'owner' && (
+												{team.user._id !== ownerId && (
 													<button
 														className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
 														onClick={() => handleRemoveMember(team._id)}
