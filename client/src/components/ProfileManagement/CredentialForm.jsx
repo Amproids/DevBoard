@@ -5,14 +5,11 @@ import { useFormChanges } from '../../hooks/useFormChanges';
 import ChangePasswordModal from './ChangePasswordModal';
 
 function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
-    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } =
+        useFormStatus();
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-    
-    const { 
-        hasChanges, 
-        checkForChanges, 
-        updateOriginalData 
-    } = useFormChanges(
+
+    const { hasChanges, checkForChanges, updateOriginalData } = useFormChanges(
         {
             email: credentials.email || '',
             phoneNumber: credentials.phoneNumber || ''
@@ -38,7 +35,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
     const handleSubmit = async event => {
         event.preventDefault();
         setLoading(true);
-        
+
         try {
             // Only validate email for this form (password is handled in modal)
             const credentialsToValidate = {
@@ -47,29 +44,28 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                 password: '', // Empty password to skip password validation
                 confirmPassword: ''
             };
-            
+
             credentialsService.validateCredentials(credentialsToValidate);
-            
+
             // Only send email and phone number updates
             const credentialsToUpdate = {
                 email: credentials.email,
                 phoneNumber: credentials.phoneNumber
             };
-            
+
             await credentialsService.updateCredentials(credentialsToUpdate);
-            
+
             setSuccessMessage('Contact information updated successfully');
-            
+
             updateOriginalData({
                 email: credentials.email,
                 phoneNumber: credentials.phoneNumber
             });
-            
+
             // Call parent callback to refresh data if provided
             if (onCredentialsUpdate) {
                 await onCredentialsUpdate();
             }
-            
         } catch (error) {
             console.error('Error updating credentials:', error);
             setErrorMessage(error);
@@ -89,7 +85,10 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
         <div>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                         Email <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -104,9 +103,12 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                         required
                     />
                 </div>
-                
+
                 <div>
-                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="phoneNumber"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                         Phone Number
                     </label>
                     <input
@@ -120,7 +122,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                         disabled={loading}
                     />
                 </div>
-                
+
                 {/* Password Change Button */}
                 <div>
                     <button
@@ -132,7 +134,7 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                         Change Password
                     </button>
                 </div>
-                
+
                 <button
                     className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasChanges && !loading
@@ -144,9 +146,11 @@ function CredentialForm({ credentials, setCredentials, onCredentialsUpdate }) {
                 >
                     {loading ? 'Updating...' : 'Update Contact Information'}
                 </button>
-                
+
                 {status.message && (
-                    <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                    <div
+                        className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}
+                    >
                         {status.message}
                     </div>
                 )}

@@ -28,23 +28,26 @@ function Dashboard() {
     ];
 
     // Fetch dashboard data from the server
-    const fetchBoards = useCallback(async (filter = currentFilter, sort = currentSort) => {
-        try {
-            setLoading(true);
-            setError(false);
+    const fetchBoards = useCallback(
+        async (filter = currentFilter, sort = currentSort) => {
+            try {
+                setLoading(true);
+                setError(false);
 
-            const response = await boardService.getBoards({
-                filter: filter,
-                sort: sort
-            });
-            setBoards(response.data);
-        } catch (error) {
-            setError(true);
-            console.error('Error fetching boards:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [currentFilter, currentSort]);
+                const response = await boardService.getBoards({
+                    filter: filter,
+                    sort: sort
+                });
+                setBoards(response.data);
+            } catch (error) {
+                setError(true);
+                console.error('Error fetching boards:', error);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [currentFilter, currentSort]
+    );
 
     useEffect(() => {
         fetchBoards();
@@ -54,31 +57,33 @@ function Dashboard() {
         setShowCreateModal(true);
     };
 
-    const handleBoardCreated = (newBoard) => {
+    const handleBoardCreated = newBoard => {
         // Add the new board to the list
         setBoards(prev => [newBoard, ...prev]);
     };
 
-    const handleBoardUpdated = (updatedBoard) => {
+    const handleBoardUpdated = updatedBoard => {
         // Update the board in the list
-        setBoards(prev => prev.map(board =>
-            board._id === updatedBoard._id ? updatedBoard : board
-        ));
+        setBoards(prev =>
+            prev.map(board =>
+                board._id === updatedBoard._id ? updatedBoard : board
+            )
+        );
     };
 
-    const handleFilterChange = (newFilter) => {
+    const handleFilterChange = newFilter => {
         setCurrentFilter(newFilter);
         fetchBoards(newFilter, currentSort);
     };
 
-    const handleSortChange = (newSort) => {
+    const handleSortChange = newSort => {
         setCurrentSort(newSort);
         fetchBoards(currentFilter, newSort);
     };
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className='mx-auto p-4 md:max-w-6xl'>
+            <div className="mx-auto p-4 md:max-w-6xl">
                 {!loading && !error && (
                     <>
                         {/* Header with Create Button */}
@@ -96,15 +101,25 @@ function Dashboard() {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 bg-gray-50 p-4 rounded-lg">
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex items-center gap-2">
-                                    <label htmlFor="filter" className="text-sm font-medium text-gray-700">Filter:</label>
+                                    <label
+                                        htmlFor="filter"
+                                        className="text-sm font-medium text-gray-700"
+                                    >
+                                        Filter:
+                                    </label>
                                     <select
                                         value={currentFilter}
                                         id="filter"
-                                        onChange={(e) => handleFilterChange(e.target.value)}
+                                        onChange={e =>
+                                            handleFilterChange(e.target.value)
+                                        }
                                         className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         {filterOptions.map(option => (
-                                            <option key={option.value} value={option.value}>
+                                            <option
+                                                key={option.value}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </option>
                                         ))}
@@ -112,15 +127,25 @@ function Dashboard() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <label htmlFor="sort" className="text-sm font-medium text-gray-700">Sort:</label>
+                                    <label
+                                        htmlFor="sort"
+                                        className="text-sm font-medium text-gray-700"
+                                    >
+                                        Sort:
+                                    </label>
                                     <select
                                         value={currentSort}
                                         id="sort"
-                                        onChange={(e) => handleSortChange(e.target.value)}
+                                        onChange={e =>
+                                            handleSortChange(e.target.value)
+                                        }
                                         className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         {sortOptions.map(option => (
-                                            <option key={option.value} value={option.value}>
+                                            <option
+                                                key={option.value}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </option>
                                         ))}
@@ -129,14 +154,15 @@ function Dashboard() {
                             </div>
 
                             <div className="text-sm text-gray-600">
-                                {boards.length} board{boards.length !== 1 ? 's' : ''} found
+                                {boards.length} board
+                                {boards.length !== 1 ? 's' : ''} found
                             </div>
                         </div>
 
                         {/* Boards Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {boards.length > 0 ? (
-                                boards.map((board) => (
+                                boards.map(board => (
                                     <BoardPreviewCard
                                         key={board._id}
                                         board={board}
@@ -146,12 +172,27 @@ function Dashboard() {
                             ) : (
                                 <div className="col-span-full text-center py-12">
                                     <div className="text-gray-400 mb-4">
-                                        <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        <svg
+                                            className="mx-auto h-16 w-16"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={1}
+                                                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                            />
                                         </svg>
                                     </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No boards yet</h3>
-                                    <p className="text-gray-500 mb-6">Create your first board to get started organizing your work</p>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                        No boards yet
+                                    </h3>
+                                    <p className="text-gray-500 mb-6">
+                                        Create your first board to get started
+                                        organizing your work
+                                    </p>
                                     <button
                                         onClick={handleCreateBoard}
                                         className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
@@ -175,7 +216,9 @@ function Dashboard() {
                 {error && (
                     <div className="text-red-500 flex justify-center items-center h-[40vh]">
                         <div className="text-center">
-                            <p className="mb-4">Server Error While Loading Dashboard.</p>
+                            <p className="mb-4">
+                                Server Error While Loading Dashboard.
+                            </p>
                             <button
                                 onClick={fetchBoards}
                                 className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"

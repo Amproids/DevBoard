@@ -136,7 +136,7 @@ const validateGetBoardsInput = data => {
     });
 };
 
-const validateColumnOrderInput = (data) => {
+const validateColumnOrderInput = data => {
     const schema = Joi.object({
         columnIds: Joi.array()
             .items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/))
@@ -148,7 +148,7 @@ const validateColumnOrderInput = (data) => {
                 'string.pattern.base': 'Invalid column ID format'
             })
     });
-    
+
     return schema.validate(data);
 };
 

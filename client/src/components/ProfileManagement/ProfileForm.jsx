@@ -4,20 +4,22 @@ import { useFormStatus } from '../../hooks/useFormStatus';
 import { useFormChanges } from '../../hooks/useFormChanges';
 
 function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
-    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
+    const { status, loading, setLoading, setSuccessMessage, setErrorMessage } =
+        useFormStatus();
 
-    const {
-        hasChanges,
-        checkForChanges,
-        updateOriginalData
-    } = useFormChanges(
+    const { hasChanges, checkForChanges, updateOriginalData } = useFormChanges(
         {
             firstName: profile?.firstName || '',
             lastName: profile?.lastName || '',
             displayName: profile?.displayName || '',
             avatar: profile?.avatar || null
         },
-        [profile?.firstName, profile?.lastName, profile?.displayName, profile?.avatar]
+        [
+            profile?.firstName,
+            profile?.lastName,
+            profile?.displayName,
+            profile?.avatar
+        ]
     );
 
     useEffect(() => {
@@ -48,7 +50,7 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
             await profileService.updateProfile(profile);
             setSuccessMessage('Profile updated successfully');
             updateOriginalData(profile);
-            
+
             // Call parent callback to refresh data if provided
             if (onProfileUpdate) {
                 await onProfileUpdate();
@@ -65,7 +67,10 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
         <div>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                         First Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -80,9 +85,12 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
                         required
                     />
                 </div>
-                
+
                 <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                         Last Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -99,7 +107,10 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
                 </div>
 
                 <div>
-                    <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="displayName"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                         Display Name
                     </label>
                     <input
@@ -115,7 +126,10 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
                 </div>
 
                 <div>
-                    <label htmlFor="avatar" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="avatar"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                         Profile Picture
                     </label>
                     <div className="relative">
@@ -130,7 +144,7 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
                         />
                     </div>
                 </div>
-                
+
                 <button
                     className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-secondary)] cursor-pointer ${
                         hasChanges && !loading
@@ -142,9 +156,11 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
                 >
                     {loading ? 'Updating...' : 'Update Profile'}
                 </button>
-                
+
                 {status.message && (
-                    <div className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                    <div
+                        className={`p-3 rounded-lg ${status.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}
+                    >
                         {status.message}
                     </div>
                 )}

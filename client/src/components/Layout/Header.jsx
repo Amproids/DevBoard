@@ -139,14 +139,18 @@ function Header({ isAuthenticated = false }) {
                                         <Link
                                             to="/login"
                                             className="w-full text-left px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             Login
                                         </Link>
                                         <Link
                                             to="/register"
                                             className="w-full text-left px-4 py-2 bg-[var(--color-primary)] text-gray-800 rounded-md hover:bg-[var(--color-highlight)] transition-colors"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             Sign Up
                                         </Link>
@@ -156,14 +160,18 @@ function Header({ isAuthenticated = false }) {
                                         <Link
                                             to="/profile"
                                             className="w-full text-left px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             Profile
                                         </Link>
                                         <Link
                                             to="/logout"
                                             className="w-full text-left px-4 py-2 bg-[var(--color-primary)] text-gray-800 rounded-md hover:bg-[var(--color-highlight)] transition-colors"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             Sign Out
                                         </Link>

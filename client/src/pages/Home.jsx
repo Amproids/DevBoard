@@ -16,10 +16,11 @@ function Home() {
                         Streamline your development workflow with kanban-style
                         project management and real-time team collaboration.
                     </p>
-                    <Link 
-                        to="/register" 
+                    <Link
+                        to="/register"
                         type="button"
-                        className="px-8 py-4 bg-[var(--color-primary)] text-gray-800 rounded-lg text-lg font-semibold hover:bg-[var(--color-highlight)] transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        className="px-8 py-4 bg-[var(--color-primary)] text-gray-800 rounded-lg text-lg font-semibold hover:bg-[var(--color-highlight)] transform hover:scale-105 transition-all duration-200 shadow-lg"
+                    >
                         Get Started
                     </Link>
                 </div>

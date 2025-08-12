@@ -28,10 +28,7 @@ function App() {
                     <Header isAuthenticated={isAuthenticated} />
                     <main>
                         <Routes>
-                            <Route
-                                path="/"
-                                element={<Home />}
-                            />
+                            <Route path="/" element={<Home />} />
                             <Route
                                 path="/login"
                                 element={<Login setIsAuthenticated={login} />}
@@ -40,14 +37,13 @@ function App() {
                                 path="/reset/password"
                                 element={<ResetPassword />}
                             />
-                            <Route
-                                path="/register"
-                                element={<Register />}
-                            />
+                            <Route path="/register" element={<Register />} />
                             <Route
                                 path="/dashboard"
                                 element={
-                                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                    <ProtectedRoute
+                                        isAuthenticated={isAuthenticated}
+                                    >
                                         <Dashboard />
                                     </ProtectedRoute>
                                 }
@@ -55,7 +51,9 @@ function App() {
                             <Route
                                 path="/profile"
                                 element={
-                                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                    <ProtectedRoute
+                                        isAuthenticated={isAuthenticated}
+                                    >
                                         <Profile />
                                     </ProtectedRoute>
                                 }
@@ -67,7 +65,9 @@ function App() {
                             <Route
                                 path="/board/:id"
                                 element={
-                                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                    <ProtectedRoute
+                                        isAuthenticated={isAuthenticated}
+                                    >
                                         <Board />
                                     </ProtectedRoute>
                                 }

@@ -1,19 +1,21 @@
 import React from 'react';
 import { authService } from '../../services/authService';
 
-function OAuthButtons({ 
-    label = 'login', 
-    loading = false, 
-    onError = () => {}, 
-    onLoading = () => {} 
+function OAuthButtons({
+    label = 'login',
+    loading = false,
+    onError = () => {},
+    onLoading = () => {}
 }) {
-    const handleOAuthLogin = async (provider) => {
+    const handleOAuthLogin = async provider => {
         try {
             onLoading(true);
             await authService.redirectToOAuth(provider);
         } catch (error) {
             console.error(`${provider} ${label} error:`, error);
-            onError(new Error(`${provider} ${label} failed. Please try again.`));
+            onError(
+                new Error(`${provider} ${label} failed. Please try again.`)
+            );
         } finally {
             onLoading(false);
         }
@@ -67,9 +69,7 @@ function OAuthButtons({
                         clipRule="evenodd"
                     />
                 </svg>
-                <span className="font-medium">
-                    Continue with GitHub
-                </span>
+                <span className="font-medium">Continue with GitHub</span>
             </button>
         </div>
     );

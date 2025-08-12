@@ -111,14 +111,18 @@ const getColumnsByBoardService = async (
         const board = await Boards.findOne({
             _id: boardId,
             $or: [{ owner: userId }, { 'members.user': userId }]
-        }).populate({
-            path: 'columns',
-            populate: populateTasks ? {
-                path: 'tasks',
-                select: 'title description assignees dueDate',
-                options: { sort: { createdAt: 1 } }
-            } : undefined
-        }).select('_id lockedColumns columns');
+        })
+            .populate({
+                path: 'columns',
+                populate: populateTasks
+                    ? {
+                          path: 'tasks',
+                          select: 'title description assignees dueDate',
+                          options: { sort: { createdAt: 1 } }
+                      }
+                    : undefined
+            })
+            .select('_id lockedColumns columns');
 
         if (!board) {
             throw createError(
@@ -235,7 +239,7 @@ const deleteColumnService = async (columnId, userId, options = {}) => {
 
         // Delete the column
         await Columns.deleteOne({ _id: columnId }).session(session);
-        
+
         // Remove the column from the board's columns array
         await Boards.updateOne(
             { _id: column.board._id },
