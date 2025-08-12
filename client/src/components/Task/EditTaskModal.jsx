@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { taskService } from '../../services/taskService';
 
-function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
+function EditTaskModal({ isOpen, onClose, task, onTaskUpdated }) {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         priority: 'medium',
         dueDate: '',
-        assignees: []
+        completed: false
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Populate form when task changes
+    useEffect(() => {
+        if (task) {
+            setFormData({
+                title: task.title || '',
+                description: task.description || '',
+                priority: task.priority || 'medium',
+                dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+                completed: task.completed || false
+            });
+        }
+    }, [task]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -26,10 +39,10 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
     }, [isOpen, onClose]);
 
     const handleInputChange = e => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         }));
     };
 
@@ -49,49 +62,32 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
                 priority: formData.priority,
-                ...(formData.dueDate && { dueDate: formData.dueDate }),
-                ...(formData.assignees.length > 0 && {
-                    assignees: formData.assignees
-                })
+                completed: formData.completed,
+                ...(formData.dueDate && { dueDate: formData.dueDate })
             };
 
-            const response = await taskService.createTask(columnId, taskData);
+            const response = await taskService.updateTask(task._id, taskData);
 
-            // Call the callback to refresh column data
-            if (onTaskCreated) {
-                onTaskCreated(response.data);
+            // Call the callback to update the task
+            if (onTaskUpdated) {
+                onTaskUpdated(response.data || response);
             }
 
-            // Reset form and close modal
-            setFormData({
-                title: '',
-                description: '',
-                priority: 'medium',
-                dueDate: '',
-                assignees: []
-            });
             onClose();
         } catch (error) {
-            console.error('Error creating task:', error);
-            setError(error.response?.data?.message || 'Failed to create task');
+            console.error('Error updating task:', error);
+            setError(error.response?.data?.message || 'Failed to update task');
         } finally {
             setLoading(false);
         }
     };
 
     const handleClose = () => {
-        setFormData({
-            title: '',
-            description: '',
-            priority: 'medium',
-            dueDate: '',
-            assignees: []
-        });
         setError('');
         onClose();
     };
 
-    if (!isOpen) return null;
+    if (!isOpen || !task) return null;
 
     return (
         <div
@@ -101,7 +97,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-5 border-b border-gray-200">
                     <h2 className="text-xl font-semibold text-gray-900">
-                        Add New Task
+                        Edit Task
                     </h2>
                     <button
                         onClick={handleClose}
@@ -154,7 +150,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                 htmlFor="description"
                                 className="block text-sm font-medium text-gray-700 mb-1.5"
                             >
-                                Description (Optional)
+                                Description
                             </label>
                             <textarea
                                 id="description"
@@ -170,7 +166,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                         </div>
 
                         {/* Priority and Due Date in same row */}
-                        <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="grid grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label
                                     htmlFor="priority"
@@ -207,12 +203,28 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     disabled={loading}
-                                    min={new Date().toISOString().split('T')[0]}
                                 />
                             </div>
                         </div>
 
-                        {/* Simplified note about assignees */}
+                        {/* Completion Status */}
+                        <div className="mb-4">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    name="completed"
+                                    checked={formData.completed}
+                                    onChange={handleInputChange}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    disabled={loading}
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Mark as completed
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Note about assignees */}
                         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <p className="text-sm text-blue-700 flex items-center gap-2">
                                 <svg
@@ -226,7 +238,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                You can assign team members after creating the task.
+                                Assignee management is available in the full task view.
                             </p>
                         </div>
 
@@ -267,7 +279,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                 }`}
                                 disabled={loading || !formData.title.trim()}
                             >
-                                {loading ? 'Creating...' : 'Create Task'}
+                                {loading ? 'Saving...' : 'Save Changes'}
                             </button>
                         </div>
                     </form>
@@ -277,4 +289,4 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
     );
 }
 
-export default AddTaskModal;
+export default EditTaskModal;
