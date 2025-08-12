@@ -91,7 +91,19 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], currentUserId,
 	const handleChangeRole = async (memberId, newRole) => {
 		setRoleChangeLoading(prev => ({ ...prev, [memberId]: true }));
 		try {
-			await teamService.changeRole(boardId, memberId, newRole);
+			if (memberId === ownerId) {
+				setError('Cannot change the role of the owner');
+				return;
+			}
+			const updatedData = {
+				...board,
+				members: teams.map(member =>
+					member._id === memberId
+						? { ...member, role: newRole, user: member.user._id }
+						: { ...member, user: member.user._id }
+				)
+			};
+			await teamService.changeRole(boardId, updatedData);
 			if (onTeamUpdated) onTeamUpdated();
 		} catch (error) {
 			setError('Failed to change role');

@@ -46,16 +46,16 @@ export const teamService = {
 	},
 
 	// Assign owner to the team
-	async assignOwner(teamId, memberId) {
+	async changeRole(boardId, updatedData) {
 		try {
-			const response = await axios.patch(
-				`${API_BASE_URL}/teams/${teamId}/owner`,
-				{ memberId },
+			const response = await axios.put(
+				`${API_BASE_URL}/boards/${boardId}`,
+				updatedData,
 				getAuthHeaders()
 			);
 			return response.data;
 		} catch (error) {
-			console.error('Error assigning owner:', error);
+			console.error('Error changing role:', error);
 			throw error;
 		}
 	},

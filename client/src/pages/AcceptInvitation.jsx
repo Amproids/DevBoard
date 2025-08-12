@@ -23,7 +23,6 @@ const AcceptInvitation = () => {
 					throw new Error(response.message || 'Failed to accept invitation');
 				}
 				setStatus('accepted');
-				console.log('Invitation accepted:', response);
 				setTimeout(() => {
 					navigate(`/dashboard`);
 				}, 2000);
