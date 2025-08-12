@@ -16,7 +16,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 	const [error, setError] = useState('');
 	const [menuOpenId, setMenuOpenId] = useState(null);
 	const [roleChangeLoading, setRoleChangeLoading] = useState(false);
-	const [transferLoading, setTransferLoading] = useState({});
+	const [transferLoading, setTransferLoading] = useState(false);
 	const [removeLoading, setRemoveLoading] = useState(false);
 
 	const ownerId = board?.owner?._id;
@@ -83,14 +83,23 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 	};
 
 	const handleTransferOwnership = async (memberId) => {
-		setTransferLoading(prev => ({ ...prev, [memberId]: true }));
+		setTransferLoading(true);
 		try {
-			await teamService.transferOwnership(boardId, memberId);
+			const updatedData = {
+				...board,
+				owner: memberId,
+				members: teams.map(member =>
+					member._id === memberId
+						? { ...member, role: 'admin', user: member.user._id }
+						: { ...member, user: member.user._id }
+				)
+			};
+			await teamService.transferOwnership(boardId, updatedData);
 			if (onTeamUpdated) onTeamUpdated();
 		} catch (error) {
 			setError('Failed to transfer ownership');
 		} finally {
-			setTransferLoading(prev => ({ ...prev, [memberId]: false }));
+			setTransferLoading(false);
 			setMenuOpenId(null);
 		}
 	};
@@ -172,6 +181,11 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 						Removing member, please wait...
 					</div>
 				)}
+				{transferLoading && (
+					<div className="mb-4 text-green-600 text-sm">
+						Transferring ownership, please wait...
+					</div>
+				)}
 			</form>
 			<div>
 				{teams && teams.length > 0 ? (
@@ -213,7 +227,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 												{userId === ownerId && (
 													<button
 														className="flex cursor-pointer items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50"
-														onClick={() => handleTransferOwnership(team._id)}
+														onClick={() => handleTransferOwnership(team.user._id)}
 														disabled={transferLoading[team._id]}
 													>
 														{transferLoading[team._id] ? "Transferring..." : "Transfer Ownership"}

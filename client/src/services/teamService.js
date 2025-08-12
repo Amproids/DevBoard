@@ -60,17 +60,17 @@ export const teamService = {
 		}
 	},
 
-	// Edit a member's role in the team
-	async editRole(teamId, memberId, role) {
+	// transfer ownership of the team
+	async transferOwnership(boardId, updatedData) {
 		try {
-			const response = await axios.patch(
-				`${API_BASE_URL}/teams/${teamId}/members/${memberId}/role`,
-				{ role },
+			const response = await axios.put(
+				`${API_BASE_URL}/boards/${boardId}/`,
+				updatedData,
 				getAuthHeaders()
 			);
 			return response.data;
 		} catch (error) {
-			console.error('Error editing role:', error);
+			console.error('Error transferring ownership:', error);
 			throw error;
 		}
 	},
