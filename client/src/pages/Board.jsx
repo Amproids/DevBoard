@@ -8,6 +8,7 @@ import BoardMetaInfo from '../components/Board/BoardMetaInfo.jsx';
 import BackToDashboard from '../components/Board/BackToDashboard.jsx';
 import EditBoardModal from '../components/Board/EditBoardModal.jsx';
 import RemoveBoardModal from '../components/Board/RemoveBoardModal.jsx';
+import TeamModal from '../components/Team/TeamModal.jsx';
 
 function Board() {
     const { id } = useParams();
@@ -20,10 +21,12 @@ function Board() {
     const [showEditBoardModal, setShowEditBoardModal] = useState(false);
     const [showRemoveBoardModal, setShowRemoveBoardModal] = useState(false);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-    
+
     // Drag and drop state for columns
     const [draggedColumn, setDraggedColumn] = useState(null);
     const [draggedOver, setDraggedOver] = useState(null);
+
+    console.log('Board ID:', board);
 
     const fetchBoard = async () => {
         try {
@@ -95,7 +98,7 @@ function Board() {
     const handleColumnDragStart = (e, column, index) => {
         setDraggedColumn({ column, index });
         e.dataTransfer.effectAllowed = 'move';
-        
+
         // Set column drag data with type identifier
         const dragData = {
             type: 'COLUMN_DRAG',
@@ -103,26 +106,26 @@ function Board() {
             columnIndex: index
         };
         e.dataTransfer.setData('application/json', JSON.stringify(dragData));
-        
+
         // Find the entire column wrapper and apply opacity
         const columnWrapper = e.target.closest('.column-wrapper');
         if (columnWrapper) {
             columnWrapper.style.opacity = '0.5';
         }
-        
+
         // Prevent the drag image from causing scroll issues
         const dragImage = new Image();
         dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
         e.dataTransfer.setDragImage(dragImage, 0, 0);
     };
-    
+
     const handleColumnDragEnd = (e) => {
         // Find the entire column wrapper and reset opacity
         const columnWrapper = e.target.closest('.column-wrapper');
         if (columnWrapper) {
             columnWrapper.style.opacity = '1';
         }
-        
+
         setDraggedColumn(null);
         setDraggedOver(null);
     };
@@ -138,23 +141,23 @@ function Board() {
 
     const handleColumnDrop = async (e, dropIndex) => {
         e.preventDefault();
-        
+
         if (draggedColumn && draggedColumn.index !== dropIndex) {
             const newColumns = [...board.columns];
             const draggedItem = newColumns[draggedColumn.index];
-            
+
             // Remove the dragged item
             newColumns.splice(draggedColumn.index, 1);
-            
+
             // Insert at new position
             newColumns.splice(dropIndex, 0, draggedItem);
-            
+
             // Update board state immediately for UI responsiveness
             setBoard(prev => ({
                 ...prev,
                 columns: newColumns
             }));
-            
+
             // Update column order
             try {
                 await boardService.updateColumnOrder(id, newColumns.map(col => col._id));
@@ -163,7 +166,7 @@ function Board() {
                 fetchBoard();
             }
         }
-        
+
         setDraggedOver(null);
         setDraggedColumn(null);
     };
@@ -228,6 +231,15 @@ function Board() {
                                             <div className="absolute md:right-0 mt-4 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                                                 <ul className="py-1">
                                                     <li>
+                                                        <button
+                                                            className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                                            onClick={() => {
+                                                                // setShowEditBoardModal(true);
+                                                                setShowSettingsDropdown(false);
+                                                            }}
+                                                        >
+                                                            Teams
+                                                        </button>
                                                         <button
                                                             className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                                             onClick={() => {
@@ -308,7 +320,7 @@ function Board() {
                                                 </div>
                                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No columns yet</h3>
                                                 <p className="text-gray-500 mb-6">Add your first column to start organizing tasks</p>
-                                                <button 
+                                                <button
                                                     onClick={handleAddColumn}
                                                     className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
                                                 >
@@ -323,6 +335,13 @@ function Board() {
                     </div>
                 </>
             )}
+
+            <TeamModal
+                isOpen={false}
+                onClose={() => { }}
+                boardId={id}
+                teams={board?.members || []}
+            />
 
             <EditBoardModal
                 isOpen={showEditBoardModal}

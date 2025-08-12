@@ -39,7 +39,7 @@ const inviteToBoardController = async (req, res, next) => {
             next(createError(500, 'Error sending invitation'));
         }
     }
-};
+}
 
 const getBoardInvitationsController = async (req, res, next) => {
     try {

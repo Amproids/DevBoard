@@ -9,26 +9,26 @@ function Task({ task, onTaskUpdated, onTaskDeleted, onTaskDragStart, onTaskDragE
     const handleTaskClick = () => {
         // Don't open details if we're dragging
         if (isDragging) return;
-        
+
         // TODO: Open task details modal
         console.log('Task clicked:', task.title);
     };
 
     const handleCheckboxChange = async (e) => {
         e.stopPropagation(); // Prevent triggering handleTaskClick
-        
+
         const newCompletedStatus = e.target.checked;
         const updateData = { completed: newCompletedStatus };
-        
+
         console.log('Updating task:', task._id, 'with data:', updateData);
-        
+
         try {
             setLoading(true);
             // Update the task completion status
             const updatedTask = await taskService.updateTask(task._id, updateData);
-            
+
             console.log('Task updated successfully:', updatedTask);
-            
+
             if (onTaskUpdated) {
                 // Pass the updated task data from the response
                 onTaskUpdated(updatedTask.data || updatedTask);
@@ -107,9 +107,9 @@ function Task({ task, onTaskUpdated, onTaskDeleted, onTaskDragStart, onTaskDragE
             e.preventDefault();
             return;
         }
-        
+
         setIsDragging(true);
-        
+
         // Call parent's drag start handler
         if (onTaskDragStart) {
             onTaskDragStart(e);
@@ -118,7 +118,7 @@ function Task({ task, onTaskUpdated, onTaskDeleted, onTaskDragStart, onTaskDragE
 
     const handleDragEnd = (e) => {
         setIsDragging(false);
-        
+
         // Call parent's drag end handler
         if (onTaskDragEnd) {
             onTaskDragEnd(e);
@@ -132,7 +132,35 @@ function Task({ task, onTaskUpdated, onTaskDeleted, onTaskDragStart, onTaskDragE
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow relative group">
+        <div
+            className={`
+                bg-white border border-gray-200 rounded-lg p-3 
+                hover:shadow-md transition-all relative group 
+                ${isCompleted ? 'opacity-75' : ''}
+                ${isDraggable ? 'cursor-move' : 'cursor-pointer'}
+                ${isDragging ? 'opacity-50 rotate-1 scale-105' : ''}
+            `}
+            draggable={isDraggable}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onClick={handleTaskClick}
+        >
+            {/* Drag Handle Indicator - only show when draggable */}
+            {isDraggable && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition-opacity">
+                    <svg className="w-3 h-5 text-gray-400" fill="currentColor" viewBox="0 0 8 20">
+                        <circle cx="2" cy="2" r="1.5" />
+                        <circle cx="6" cy="2" r="1.5" />
+                        <circle cx="2" cy="7" r="1.5" />
+                        <circle cx="6" cy="7" r="1.5" />
+                        <circle cx="2" cy="12" r="1.5" />
+                        <circle cx="6" cy="12" r="1.5" />
+                        <circle cx="2" cy="17" r="1.5" />
+                        <circle cx="6" cy="17" r="1.5" />
+                    </svg>
+                </div>
+            )}
+
             {/* Task Menu Button */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
