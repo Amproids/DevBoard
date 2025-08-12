@@ -173,25 +173,24 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 									<span className="font-medium text-gray-800">
 										{team.user.firstName} {team.user.lastName}
 									</span>
-									{team.role === 'owner' && (
+									{team.user._id === ownerId && (
 										<span className="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800 font-semibold">Owner</span>
 									)}
 								</div>
 								<div className="flex items-center gap-2">
 									<select
 										value={team.role}
-										disabled={team.role === 'owner' || roleChangeLoading[team._id]}
+										disabled={team.user._id === ownerId || roleChangeLoading[team._id]}
 										onChange={e => handleChangeRole(team._id, e.target.value)}
-										className="px-2 py-1 border border-gray-300 rounded text-sm"
+										className={`px-2 py-1 border border-gray-300 rounded text-sm ${team.user._id === ownerId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
 									>
 										{ROLE_OPTIONS.map(opt => (
 											<option key={opt.value} value={opt.value}>{opt.label}</option>
 										))}
-										{team.role === 'owner' && <option value="owner">Owner</option>}
 									</select>
 									<button
-										className="p-1 rounded cursor-pointer hover:bg-gray-100 transition-colors"
-										onClick={() => setMenuOpenId(menuOpenId === team._id ? null : team._id)}
+										className={`p-1 rounded cursor-pointer hover:bg-gray-100 transition-colors ${team.user._id === ownerId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+										onClick={() => team.user._id !== ownerId && setMenuOpenId(menuOpenId === team._id ? null : team._id)}
 									>
 										<svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<circle cx="12" cy="6" r="1.5" />
@@ -220,7 +219,7 @@ const TeamModal = ({ isOpen, onClose, boardId, board, teams = [], onTeamUpdated 
 														{removeLoading[team._id] ? "Removing..." : "Remove Member"}
 													</button>
 												)}
-												{team.role === 'owner' && (
+												{team.user._id === ownerId && (
 													<span className="block px-4 py-2 text-xs text-gray-400">Owner cannot be removed</span>
 												)}
 											</div>
