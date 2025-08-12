@@ -12,7 +12,7 @@ const generate6CharToken = () => {
 // Hash the token using bcrypt
 const hashToken = async (token) => {
 	const saltRounds = 10;
-	return await bcrypt.hash(token, saltRounds);
+	return bcrypt.hash(token, saltRounds);
 };
 
 const transporter = nodemailer.createTransport({

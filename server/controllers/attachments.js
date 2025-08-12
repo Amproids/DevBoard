@@ -2,7 +2,6 @@ const createError = require('http-errors');
 const attachmentsService = require('../services/attachments');
 const attachmentsValidator = require('../validators/attachments');
 const fs = require('fs');
-const path = require('path');
 
 const uploadAttachmentController = async (req, res, next) => {
     try {

@@ -12,7 +12,6 @@ function ChangePasswordModal({ isOpen, onClose, onPasswordUpdate }) {
 
     // Check if form is valid and get validation errors
     const passwordTooShort = passwordData.password.length > 0 && passwordData.password.length < 6;
-    const confirmPasswordTooShort = passwordData.confirmPassword.length > 0 && passwordData.confirmPassword.length < 6;
     const passwordsMismatch = passwordData.password.length > 0 && 
                              passwordData.confirmPassword.length > 0 && 
                              passwordData.password !== passwordData.confirmPassword;

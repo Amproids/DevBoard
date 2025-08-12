@@ -93,7 +93,7 @@ export const linkedAccountsService = {
         try {
             this.validatePasswordData(passwordData);
             
-            const { confirmPassword, ...dataToSend } = passwordData;
+            const { confirmPassword: _, ...dataToSend } = passwordData;
             // Use the profiles credentials endpoint (fix: use singular 'credential')
             const response = await axios.put(`${API_BASE_URL}/profiles/credential`, dataToSend, {
                 headers: authService.getAuthHeaders()

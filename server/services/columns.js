@@ -155,20 +155,6 @@ const updateColumnService = async (columnId, updateData, userId) => {
     }
 };
 
-const getNextAvailableOrder = async (boardId, desiredOrder) => {
-    const columns = await Columns.find({ board: boardId })
-        .sort({ order: 1 })
-        .select('order');
-
-    for (let i = desiredOrder; i < columns.length; i++) {
-        if (columns[i].order > i) {
-            return i;
-        }
-    }
-
-    return columns.length;
-};
-
 const getColumnsByBoardService = async (
     boardId,
     userId,
@@ -193,7 +179,7 @@ const getColumnsByBoardService = async (
         const query = { board: boardId };
 
         // Sort options
-        let sortOption = {};
+        const sortOption = {};
         if (sort === 'order' || sort === '-order') {
             sortOption.order = sort === 'order' ? 1 : -1;
         }
@@ -262,13 +248,14 @@ const deleteColumnService = async (columnId, userId, options = {}) => {
 
         if (column.tasks.length > 0) {
             switch (options.action) {
-                case 'delete-tasks':
+                case 'delete-tasks': {
                     await Tasks.deleteMany({
                         _id: { $in: column.tasks }
                     }).session(session);
                     break;
+                }
 
-                case 'move-tasks':
+                case 'move-tasks': {
                     const targetColumn = await Columns.findOne({
                         _id: options.targetColumnId,
                         board: column.board._id
@@ -289,6 +276,7 @@ const deleteColumnService = async (columnId, userId, options = {}) => {
                     targetColumn.tasks.push(...column.tasks);
                     await targetColumn.save({ session });
                     break;
+                }
 
                 default:
                     throw createError(
