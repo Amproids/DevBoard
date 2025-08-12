@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
 
 function Logout({ setIsAuthenticated }) {
-    const navigate = useNavigate();
     const { logout } = useAuth();
     
     // Use the prop if provided, otherwise use the hook

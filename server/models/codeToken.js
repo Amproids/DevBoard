@@ -1,5 +1,3 @@
-const mongoose = require('mongoose');
-
 module.exports = mongoose => {
 	const codeTokenSchema = mongoose.Schema(
 		{

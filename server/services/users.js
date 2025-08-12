@@ -1,6 +1,5 @@
 const createError = require('http-errors');
 const Users = require('../models').users;
-const jwt = require('../config/jwt');
 
 const getAllUsersService = async () => {
     try {

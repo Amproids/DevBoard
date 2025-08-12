@@ -1,3 +1,4 @@
+const createError = require('http-errors');
 const { createCodeTokenService, sendResetCodeEmail, updatePassword, verifyCodeTokenService } = require("../services/codeToken");
 const validateResetPassword = require("../validators/passwordReset");
 
@@ -48,7 +49,7 @@ exports.resetPassword = async (req, res) => {
 		await updatePassword(email, newPassword);
 
 		return res.status(200).json({ message: 'Password reset successfully' });
-	} catch (err) {
+	} catch {
 		console.error('Error resetting password');
 		return res.status(500).json({ message: 'Internal server error' });
 	}

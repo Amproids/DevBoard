@@ -5,7 +5,7 @@ import { taskService } from '../../services/taskService';
 import AddTaskModal from '../Task/AddTaskModal.jsx';
 import Task from '../Task/Task.jsx';
 
-function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex, onColumnDragStart, onColumnDragEnd, allColumns, onAllColumnsUpdated }) {
+function Column({ column, onColumnUpdated, onColumnDeleted, allColumns, onAllColumnsUpdated }) {
     const [isEditingName, setIsEditingName] = useState(false);
     const [columnName, setColumnName] = useState(column.name);
     const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
     const [isAnimating, setIsAnimating] = useState(false);
     
     // Handle when ReactSortable wants to move/reorder elements (preview)
-    const handleMove = (evt) => {
+    const handleMove = () => {
         // If already animating a preview, block new ones
         if (isAnimating) {
             return false; // Returning false prevents the move
@@ -144,11 +144,20 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
         }
     };
 
-    // Handle task reordering UI updates
-    const handleTaskSort = (newTasks) => {
-        // Filter out any non-task elements (like placeholder divs)
-        const validTasks = newTasks.filter(task => task && task._id);
+    // Handle task reordering within the same column
+    const handleTaskSort = async (newTasks, sortableEvent) => {
+        // Guard against null sortableEvent (can happen on initial render)
+        if (!sortableEvent) {
+            return;
+        }
         
+        const { oldIndex, newIndex, from, to } = sortableEvent;
+        
+        // If no change in position, return early
+        if (oldIndex === newIndex && from === to) {
+            return;
+        }
+
         // Update local state immediately for smooth UI
         setTasks(validTasks);
         
@@ -196,7 +205,7 @@ function Column({ column, boardId, onColumnUpdated, onColumnDeleted, columnIndex
 
     // Handle cross-column task moves
     const handleTaskAdd = async (evt) => {
-        const { item, from, to, oldIndex, newIndex } = evt;
+        const { item, newIndex } = evt;
         
         // Get the task data from the item's data attribute
         const taskData = JSON.parse(item.getAttribute('data-task'));

@@ -22,7 +22,7 @@ function Login({ setIsAuthenticated }) {
 
     // Use custom hooks
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
-    const { hasChanges, checkForChanges } = useFormChanges(formData);
+    const { checkForChanges } = useFormChanges(formData);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -62,7 +62,7 @@ function Login({ setIsAuthenticated }) {
             });
 
             // Handle successful login
-            const { token, user } = response.data;
+            const { token } = response.data;
             
             // Store token and update auth state
             setAuthToken(token);

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 function Home() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[var(--color-background)] to-white">

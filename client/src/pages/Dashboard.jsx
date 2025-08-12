@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { boardService } from '../services/boardService';
 import CreateBoardModal from '../components/Dashboard/CreateBoardModal.jsx';
 import BoardPreviewCard from '../components/Dashboard/BoardPreviewCard.jsx';
@@ -28,7 +28,7 @@ function Dashboard() {
     ];
 
     // Fetch dashboard data from the server
-    const fetchBoards = async (filter = currentFilter, sort = currentSort) => {
+    const fetchBoards = useCallback(async (filter = currentFilter, sort = currentSort) => {
         try {
             setLoading(true);
             setError(false);
@@ -44,11 +44,11 @@ function Dashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentFilter, currentSort]);
 
     useEffect(() => {
         fetchBoards();
-    }, []);
+    }, [fetchBoards]);
 
     const handleCreateBoard = () => {
         setShowCreateModal(true);

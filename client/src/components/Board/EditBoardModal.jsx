@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Modal from '../Shared/Modal';
-import { boardService } from '../../services/boardService';
 import CreateTags from '../Shared/CreateTags';
 
 const EditBoardModal = ({ isOpen, onClose, board, onBoardUpdated }) => {
@@ -47,11 +46,8 @@ const EditBoardModal = ({ isOpen, onClose, board, onBoardUpdated }) => {
 			if (formData.description.trim()) {
 				updatedBoardData.description = formData.description.trim();
 			}
-			
-			const response = await boardService.updateBoard(formData._id, updatedBoardData);
 
 			onBoardUpdated(updatedBoardData);
-
 			onClose();
 		} catch (error) {
 			console.error('Error updating board:', error);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ReactSortable } from 'react-sortablejs';
 import { boardService } from '../services/boardService';
@@ -28,7 +28,7 @@ function Board() {
     // Animation state to prevent interactions during animations
     const [isAnimating, setIsAnimating] = useState(false);
 
-    const fetchBoard = async () => {
+    const fetchBoard = useCallback(async () => {
         try {
             setLoading(true);
             setError(false);
@@ -44,7 +44,7 @@ function Board() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, navigate]);
 
     // Update local columns when board columns change
     useEffect(() => {
@@ -57,7 +57,7 @@ function Board() {
         if (id) {
             fetchBoard();
         }
-    }, [id]);
+    }, [id, fetchBoard]);
 
     const handleBoardUpdate = (updatedBoard) => {
         setBoard(updatedBoard);
@@ -106,7 +106,7 @@ function Board() {
     };
 
     // Handle when ReactSortable wants to move/reorder elements (preview)
-    const handleMove = (evt) => {
+    const handleMove = () => {
         if (isAnimating) {
             // Force the ghost class to stay
             setTimeout(() => {

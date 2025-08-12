@@ -40,7 +40,9 @@ module.exports = {
             try {
                 jwt.verifyToken(token);
                 return res.redirect('/dashboard');
-            } catch (err) {}
+            } catch {
+                return next();
+            }
         }
 
         return next();
@@ -56,7 +58,7 @@ module.exports = {
                 const decoded = jwt.verifyToken(token);
                 req.user = decoded;
                 return next();
-            } catch (err) {
+            } catch {
                 return next(createError(403, 'Invalid or expired token'));
             }
         }
