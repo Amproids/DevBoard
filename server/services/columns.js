@@ -127,6 +127,27 @@ const getColumnsByBoardService = async (
             );
         }
 
+        const query = { board: boardId };
+
+        // Sort options
+        const sortOption = {};
+        if (sort === 'order' || sort === '-order') {
+            sortOption.order = sort === 'order' ? 1 : -1;
+        }
+
+        let columnsQuery = Columns.find(query).sort(sortOption);
+
+        // Optional population
+        if (populateTasks) {
+            columnsQuery = columnsQuery.populate({
+                path: 'tasks',
+                select: 'title description assignees dueDate',
+                options: { sort: { createdAt: 1 } }
+            });
+        }
+
+        const columns = await columnsQuery;
+
         return {
             success: true,
             count: board.columns.length,
@@ -174,13 +195,14 @@ const deleteColumnService = async (columnId, userId, options = {}) => {
 
         if (column.tasks.length > 0) {
             switch (options.action) {
-                case 'delete-tasks':
+                case 'delete-tasks': {
                     await Tasks.deleteMany({
                         _id: { $in: column.tasks }
                     }).session(session);
                     break;
+                }
 
-                case 'move-tasks':
+                case 'move-tasks': {
                     const targetColumn = await Columns.findOne({
                         _id: options.targetColumnId,
                         board: column.board._id
@@ -201,6 +223,7 @@ const deleteColumnService = async (columnId, userId, options = {}) => {
                     targetColumn.tasks.push(...column.tasks);
                     await targetColumn.save({ session });
                     break;
+                }
 
                 default:
                     throw createError(

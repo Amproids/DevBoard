@@ -1,22 +1,21 @@
-import {useState, useEffect, useCallback, use} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 
 /**
  * Custom hook for tracking form changes
  * @param {Object} initialData - Initial form data
- * @param {Array} dependencies - Values that trigger initialization
  * @returns {Object} Form state and change tracking
  */
-export const useFormChanges = (initialData, dependencies = []) => {
+export const useFormChanges = (initialData) => {
     const [originalData, setOriginalData] = useState(initialData);
     const [hasChanges, setHasChanges] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
 
-    //Initalize original data when dependencies change
+    // Initialize original data when dependencies change
     useEffect(() => {
         const hasData = Object.values(initialData).some(value =>
             value !== null && value !== undefined && value !== ''
         );
-
+        
         if (!isInitialized && hasData) {
             setOriginalData({ ...initialData});
             setIsInitialized(true);
@@ -26,20 +25,20 @@ export const useFormChanges = (initialData, dependencies = []) => {
     // Check for changes whenever dependencies change
     const checkForChanges = useCallback((currentData) => {
         if (!isInitialized) return false;
-
+        
         const changes = Object.keys(currentData).some(key => {
             const current = currentData[key];
             const original = originalData[key];
-
+            
             // Handle file comparison
             if (current instanceof File || original instanceof File) {
                 return current !== original;
             }
-
+            
             // Handle other data types
             return current !== original;
         });
-
+        
         setHasChanges(changes);
         return changes;
     }, [originalData, isInitialized]);

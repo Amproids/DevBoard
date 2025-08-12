@@ -11,7 +11,7 @@ export const credentialsService = {
      */
     async updateCredentials(credentials) {
         //Remove confirm password before sending to API
-        const { confirmPassword, ...credentialsToSend } = credentials;
+        const { confirmPassword: _, ...credentialsToSend } = credentials;
         return axios.put(`${API_BASE_URL}/profiles/credential`, credentialsToSend, {
             headers: authService.getAuthHeaders()
         })

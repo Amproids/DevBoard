@@ -1,6 +1,5 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
-const mongoose = require('mongoose');
 const db = require('../models');
 const Users = db.users;
 

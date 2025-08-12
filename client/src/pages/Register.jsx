@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormStatus } from '../hooks/useFormStatus';
 import { useFormChanges } from '../hooks/useFormChanges';
-import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 import OAuthButtons from '../components/Authentication/OAuthButtons';
 import RegisterForm from '../components/Authentication/RegisterForm';
@@ -22,7 +21,7 @@ function Register() {
 
     // Use custom hooks
     const { status, loading, setLoading, setSuccessMessage, setErrorMessage } = useFormStatus();
-    const { hasChanges, checkForChanges } = useFormChanges(formData);
+    const { checkForChanges } = useFormChanges(formData);
 
     const handleChange = (event) => {
         const { name, value } = event.target;

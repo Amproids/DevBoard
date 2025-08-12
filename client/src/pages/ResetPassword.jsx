@@ -62,7 +62,7 @@ function ResetPassword() {
             setSuccess(true);
             setTimeout(() => navigate('/login'), 3000);
         } catch (err) {
-            setError('Reset password failed. Please try again.');
+            setError(err.response?.data?.message || 'Reset password failed. Please try again.');
         } finally {
             setLoading(false);
         }

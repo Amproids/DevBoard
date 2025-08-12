@@ -1,7 +1,6 @@
 const createError = require('http-errors');
 const Tasks = require('../models').tasks;
 const Columns = require('../models').columns;
-const Boards = require('../models').boards;
 const Users = require('../models').users;
 const Comments = require('../models').comments;
 const Attachments = require('../models').attachments;
@@ -551,7 +550,7 @@ const getColumnTasksService = async (columnId, userId, filterOptions = {}) => {
             );
         }
 
-        let query = { column: columnId };
+        const query = { column: columnId };
 
         switch (filter) {
             case 'completed':
@@ -577,7 +576,7 @@ const getColumnTasksService = async (columnId, userId, filterOptions = {}) => {
             ];
         }
 
-        let sortOption = {};
+        const sortOption = {};
         switch (sort) {
             case 'dueDate':
                 sortOption.dueDate = 1;

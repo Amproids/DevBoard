@@ -3,7 +3,6 @@ const Tasks = require('../models').tasks;
 const Attachments = require('../models').attachments;
 const mongoose = require('mongoose');
 const fs = require('fs');
-const path = require('path');
 
 const uploadAttachmentService = async (taskId, file, userId) => {
     const session = await mongoose.startSession();

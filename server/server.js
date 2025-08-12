@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 });
 
 //Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
     res.status(err.status || 500);
     res.send({
         error: {
@@ -73,5 +73,5 @@ db.mongoose
     })
     .catch(err => {
         console.error('❌ Cannot connect to the database!', err);
-        process.exit(1);
+        throw new Error();
     });

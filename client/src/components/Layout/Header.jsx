@@ -1,14 +1,10 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { BriefcaseIcon } from '@heroicons/react/24/outline';
 import logo from '../../assets/logo.svg';
 
 function Header({ isAuthenticated = false }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const location = useLocation();
-
-    // Check if current route is active
-    const isActiveRoute = (path) => location.pathname === path;
 
     return (
         <header className="bg-[var(--color-background)] shadow-lg">

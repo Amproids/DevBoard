@@ -252,7 +252,7 @@ const getBoardsService = async (userId, filterOptions = {}) => {
             search = ''
         } = filterOptions;
 
-        let query = {
+        const query = {
             $or: [{ owner: userId }, { 'members.user': userId }]
         };
 
@@ -277,7 +277,7 @@ const getBoardsService = async (userId, filterOptions = {}) => {
             ];
         }
 
-        let sortOption = {};
+        const sortOption = {};
         if (sort === 'name' || sort === '-name') {
             sortOption.name = sort === 'name' ? 1 : -1;
         } 
