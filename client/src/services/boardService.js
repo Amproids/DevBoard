@@ -59,6 +59,20 @@ export const boardService = {
         }
     },
 
+    // Get board activities
+    async getBoardActivities(boardId) {
+        try {
+            const response = await axios.get(
+                `${API_BASE_URL}/boards/${boardId}/activities`,
+                getAuthHeaders()
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching board activities:', error);
+            throw error;
+        }
+    },
+
     // Update a board
     async updateBoard(boardId, boardData) {
         try {

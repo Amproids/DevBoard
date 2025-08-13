@@ -287,12 +287,8 @@ function Board() {
                                                         <button
                                                             className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                                             onClick={() => {
-                                                                setShowTeamModal(
-                                                                    true
-                                                                );
-                                                                setShowSettingsDropdown(
-                                                                    false
-                                                                );
+                                                                setShowTeamModal(true);
+                                                                setShowSettingsDropdown(false);
                                                             }}
                                                         >
                                                             Teams
@@ -300,12 +296,8 @@ function Board() {
                                                         <button
                                                             className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                                             onClick={() => {
-                                                                setShowEditBoardModal(
-                                                                    true
-                                                                );
-                                                                setShowSettingsDropdown(
-                                                                    false
-                                                                );
+                                                                setShowEditBoardModal(true);
+                                                                setShowSettingsDropdown(false);
                                                             }}
                                                         >
                                                             Edit Board
@@ -315,12 +307,8 @@ function Board() {
                                                         <button
                                                             className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                                             onClick={() => {
-                                                                setShowRemoveBoardModal(
-                                                                    true
-                                                                );
-                                                                setShowSettingsDropdown(
-                                                                    false
-                                                                );
+                                                                setShowRemoveBoardModal(true);
+                                                                setShowSettingsDropdown(false);
                                                             }}
                                                         >
                                                             Delete Board
