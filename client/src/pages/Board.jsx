@@ -148,7 +148,7 @@ function Board() {
 
     // Handle the final drop event
     const handleColumnEnd = async evt => {
-        const { oldIndex, newIndex, item } = evt;
+        const { oldIndex, newIndex } = evt;
 
         if (
             oldIndex === newIndex ||

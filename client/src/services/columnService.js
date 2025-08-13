@@ -80,10 +80,10 @@ export const columnService = {
         }
     },
 
-    // Lock/unlock a column
+    // Lock/unlock a column - FIXED to use PUT like updateColumn
     async toggleColumnLock(columnId, isLocked) {
         try {
-            const response = await axios.patch(
+            const response = await axios.put(
                 `${API_BASE_URL}/columns/${columnId}`,
                 { isLocked },
                 getAuthHeaders()

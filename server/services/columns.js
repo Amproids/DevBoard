@@ -105,7 +105,7 @@ const getColumnsByBoardService = async (
     filterOptions = {}
 ) => {
     try {
-        const { populateTasks = false } = filterOptions;
+        const { populateTasks = false, sort } = filterOptions;
 
         // Verify board access and get the board with columns in the correct order
         const board = await Boards.findOne({
@@ -149,8 +149,6 @@ const getColumnsByBoardService = async (
                 options: { sort: { createdAt: 1 } }
             });
         }
-
-        const columns = await columnsQuery;
 
         return {
             success: true,

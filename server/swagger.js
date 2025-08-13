@@ -324,7 +324,7 @@ const options = {
                 },
                 Column: {
                     type: 'object',
-                    required: ['name', 'board', 'order'],
+                    required: ['name', 'board'],
                     properties: {
                         _id: {
                             type: 'string',
@@ -340,11 +340,6 @@ const options = {
                             type: 'string',
                             format: 'objectId',
                             description: 'Reference to Board'
-                        },
-                        order: {
-                            type: 'integer',
-                            minimum: 0,
-                            example: 0
                         },
                         tasks: {
                             type: 'array',
@@ -392,11 +387,6 @@ const options = {
                             minLength: 3,
                             maxLength: 50,
                             example: 'Done'
-                        },
-                        order: {
-                            type: 'integer',
-                            minimum: 0,
-                            example: 2
                         },
                         isLocked: {
                             type: 'boolean',
@@ -610,11 +600,6 @@ const options = {
                                 format: 'objectId'
                             },
                             description: 'Array of user IDs to assign'
-                        },
-                        order: {
-                            type: 'integer',
-                            minimum: 0,
-                            description: 'Position in column'
                         }
                     }
                 },
@@ -661,11 +646,6 @@ const options = {
                             format: 'objectId',
                             description: 'New column ID'
                         },
-                        order: {
-                            type: 'integer',
-                            minimum: 0,
-                            description: 'New position in column'
-                        },
                         completed: {
                             type: 'boolean',
                             example: true
@@ -674,17 +654,12 @@ const options = {
                 },
                 MoveTaskInput: {
                     type: 'object',
-                    required: ['targetColumnId', 'newOrder'],
+                    required: ['targetColumnId'],
                     properties: {
                         targetColumnId: {
                             type: 'string',
                             format: 'objectId',
                             description: 'ID of column to move to'
-                        },
-                        newOrder: {
-                            type: 'integer',
-                            minimum: 0,
-                            description: 'New position in target column'
                         }
                     }
                 },

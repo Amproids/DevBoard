@@ -14,7 +14,7 @@ function Home() {
                     </p>
                     <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
                         Streamline your development workflow with kanban-style
-                        project management and real-time team collaboration.
+                        project management and real-time feedback.
                     </p>
                     <Link
                         to="/register"
@@ -32,7 +32,7 @@ function Home() {
                     <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
                         Built for Developers
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="text-center p-6 rounded-lg bg-gray-50 hover:bg-[var(--color-primary)] transition-colors duration-200">
                             <h3 className="text-2xl font-semibold text-gray-800 mb-4">
                                 📋 Kanban Boards
@@ -47,14 +47,6 @@ function Home() {
                             </h3>
                             <p className="text-gray-600 leading-relaxed">
                                 See updates instantly with Socket.io
-                            </p>
-                        </div>
-                        <div className="text-center p-6 rounded-lg bg-gray-50 hover:bg-[var(--color-primary)] transition-colors duration-200">
-                            <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                                👥 Team Collaboration
-                            </h3>
-                            <p className="text-gray-600 leading-relaxed">
-                                Work together seamlessly
                             </p>
                         </div>
                     </div>
@@ -73,7 +65,7 @@ function Home() {
                                 Frontend:
                             </strong>
                             <span className="ml-2">
-                                React, Socket.io, React DnD, Tailwind CSS
+                                React, Socket.io, React SortableJS, Tailwind CSS
                             </span>
                         </p>
                         <p className="text-lg text-gray-700 leading-relaxed">

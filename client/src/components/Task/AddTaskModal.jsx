@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { taskService } from '../../services/taskService';
 
 function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
@@ -12,6 +12,9 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Add ref for the title input
+    const titleInputRef = useRef(null);
+
     useEffect(() => {
         if (!isOpen) return;
 
@@ -19,9 +22,17 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
         document.addEventListener('keydown', handleEscape);
         document.body.style.overflow = 'hidden';
 
+        // Auto-focus the title input when modal opens
+        const focusTimeout = setTimeout(() => {
+            if (titleInputRef.current) {
+                titleInputRef.current.focus();
+            }
+        }, 100);
+
         return () => {
             document.removeEventListener('keydown', handleEscape);
             document.body.style.overflow = 'unset';
+            clearTimeout(focusTimeout);
         };
     }, [isOpen, onClose]);
 
@@ -136,6 +147,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                 Task Title *
                             </label>
                             <input
+                                ref={titleInputRef}
                                 type="text"
                                 id="title"
                                 name="title"
@@ -226,7 +238,8 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                You can assign team members after creating the task.
+                                You can assign team members after creating the
+                                task.
                             </p>
                         </div>
 
