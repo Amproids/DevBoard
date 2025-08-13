@@ -338,39 +338,67 @@ const moveTaskService = async (taskId, moveData, userId) => {
         const isMovingWithinSameColumn = task.column.equals(
             moveData.targetColumnId
         );
-        const maxOrder = isMovingWithinSameColumn
-            ? targetColumn.tasks.length - 1
-            : targetColumn.tasks.length;
+        
+        // FIXED: Get the tasks array BEFORE removing the task
+        const currentTasksArray = [...targetColumn.tasks];
+        
+        if (isMovingWithinSameColumn) {
+            // For same column moves, we need to handle reordering
+            const currentIndex = currentTasksArray.findIndex(id => id.equals(taskId));
+            
+            if (currentIndex === -1) {
+                throw createError(400, 'Task not found in current column');
+            }
+            
+            // Validate new order for same column (can't exceed current array length - 1)
+            if (moveData.newOrder < 0 || moveData.newOrder >= currentTasksArray.length) {
+                throw createError(400, `Order must be between 0 and ${currentTasksArray.length - 1}`);
+            }
+            
+            // Remove task from current position
+            currentTasksArray.splice(currentIndex, 1);
+            // Insert task at new position
+            currentTasksArray.splice(moveData.newOrder, 0, taskId);
+            
+            console.log('Same column reordering - Final tasks array:', currentTasksArray);
+            
+            // Update the column with new order
+            await Columns.updateOne(
+                { _id: moveData.targetColumnId },
+                { $set: { tasks: currentTasksArray } }
+            ).session(session);
+            
+        } else {
+            // Different column move - original logic
+            const maxOrder = targetColumn.tasks.length;
 
-        if (moveData.newOrder < 0 || moveData.newOrder > maxOrder) {
-            throw createError(400, `Order must be between 0 and ${maxOrder}`);
+            if (moveData.newOrder < 0 || moveData.newOrder > maxOrder) {
+                throw createError(400, `Order must be between 0 and ${maxOrder}`);
+            }
+
+            // Remove from current column
+            await Columns.updateOne(
+                { _id: task.column._id },
+                { $pull: { tasks: taskId } }
+            ).session(session);
+
+            console.log('Removed task from column:', task.column._id);
+
+            // Add to target column at specified position
+            const targetTasksArray = [...currentTasksArray];
+            targetTasksArray.splice(moveData.newOrder, 0, taskId);
+
+            console.log('Different column move - Final tasks array:', targetTasksArray);
+
+            await Columns.updateOne(
+                { _id: moveData.targetColumnId },
+                { $set: { tasks: targetTasksArray } }
+            ).session(session);
+
+            // Update task's column reference
+            task.column = moveData.targetColumnId;
+            await task.save({ session });
         }
-
-        await Columns.updateOne(
-            { _id: task.column._id },
-            { $pull: { tasks: taskId } }
-        ).session(session);
-
-        console.log('Removed task from column:', task.column._id);
-
-        const targetCol = await Columns.findById(
-            moveData.targetColumnId
-        ).session(session);
-
-        console.log('Target column tasks before insert:', targetCol.tasks);
-
-        const tasksArray = [...targetCol.tasks];
-        tasksArray.splice(moveData.newOrder, 0, taskId);
-
-        console.log('Target column tasks after insert:', tasksArray);
-
-        await Columns.updateOne(
-            { _id: moveData.targetColumnId },
-            { $set: { tasks: tasksArray } }
-        ).session(session);
-
-        task.column = moveData.targetColumnId;
-        await task.save({ session });
 
         await session.commitTransaction();
 
@@ -378,7 +406,7 @@ const moveTaskService = async (taskId, moveData, userId) => {
 
         return {
             taskId: task._id,
-            previousColumnId: task.column._id,
+            previousColumnId: isMovingWithinSameColumn ? moveData.targetColumnId : task.column._id,
             newColumnId: moveData.targetColumnId,
             newOrder: moveData.newOrder
         };

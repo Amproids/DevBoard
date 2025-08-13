@@ -23,7 +23,7 @@ function Column({
 
     // Track which task is being dragged
     const [draggedTask, setDraggedTask] = useState(null);
-
+    
     // Flag to prevent useEffect from overriding intentional updates
     const [isInternalUpdate, setIsInternalUpdate] = useState(false);
 
@@ -57,8 +57,13 @@ function Column({
     useEffect(() => {
         // Don't override if we're in the middle of an internal update
         if (isInternalUpdate) {
+            console.log('Skipping useEffect - internal update in progress');
             return;
         }
+        
+        console.log('useEffect triggered - column.tasks changed:');
+        console.log('Previous tasks:', tasks.map(t => ({ id: t._id, title: t.title })));
+        console.log('New column.tasks:', (column.tasks || []).map(t => ({ id: t._id, title: t.title })));
         setTasks(column.tasks || []);
     }, [column.tasks, isInternalUpdate]);
 
@@ -75,10 +80,11 @@ function Column({
     };
 
     // Handle drag start to track which task is being moved
-    const handleDragStart = evt => {
+    const handleDragStart = (evt) => {
         // Store which task is being dragged BEFORE any array modifications
         const draggedTaskData = tasks[evt.oldIndex];
         setDraggedTask(draggedTaskData);
+        console.log('Drag started - Task:', draggedTaskData._id, 'from index:', evt.oldIndex);
     };
 
     const handleNameEdit = async () => {
@@ -240,6 +246,10 @@ function Column({
         // Filter out any invalid tasks
         const validTasks = newTasks.filter(task => task && task._id);
 
+        console.log('handleTaskSort - Optimistic update:');
+        console.log('Old tasks:', tasks.map(t => ({ id: t._id, title: t.title })));
+        console.log('New tasks:', validTasks.map(t => ({ id: t._id, title: t.title })));
+
         // Set flag to prevent useEffect interference
         setIsInternalUpdate(true);
 
@@ -249,6 +259,8 @@ function Column({
         // Update parent component
         const updatedColumn = { ...column, tasks: validTasks };
         onColumnUpdated(updatedColumn);
+        
+        console.log('Updated column sent to parent:', updatedColumn.tasks.map(t => ({ id: t._id, title: t.title })));
     };
 
     // Handle when task reordering finishes (API call)
@@ -275,6 +287,7 @@ function Column({
 
             // If no change in position after adjustment, return early
             if (adjustedOldIndex === adjustedNewIndex) {
+                console.log('No position change detected, skipping API call');
                 setDraggedTask(null); // Clear the dragged task reference
                 setIsInternalUpdate(false); // Clear the internal update flag
                 return;
@@ -287,31 +300,35 @@ function Column({
                     return;
                 }
 
+                console.log('Moving task:', draggedTask._id, 'from', adjustedOldIndex, 'to', adjustedNewIndex);
+
                 const moveData = {
                     targetColumnId: column._id,
                     newOrder: adjustedNewIndex
                 };
 
+                const response = await taskService.moveTask(draggedTask._id, moveData);
+                console.log('Task moved successfully!', response);
+
                 // Update UI state to match server response
                 const updatedTasks = [...tasks];
-
+                
                 // Remove task from old position
-                const taskIndex = updatedTasks.findIndex(
-                    t => t._id === draggedTask._id
-                );
+                const taskIndex = updatedTasks.findIndex(t => t._id === draggedTask._id);
                 if (taskIndex !== -1) {
                     updatedTasks.splice(taskIndex, 1);
                 }
-
+                
                 // Insert task at new position
                 updatedTasks.splice(adjustedNewIndex, 0, draggedTask);
-
+                
                 // Update local state
                 setTasks(updatedTasks);
-
+                
                 // Update parent component
                 const updatedColumn = { ...column, tasks: updatedTasks };
                 onColumnUpdated(updatedColumn);
+                
             } catch (error) {
                 console.error('Error moving task:', error);
                 // Revert on error
