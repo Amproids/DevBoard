@@ -186,7 +186,9 @@ function Column({
     const handleTaskDeleted = deletedTaskId => {
         // Prevent task deletion if column is locked
         if (column.isLocked) {
-            alert('Cannot delete tasks from a locked column. Please unlock the column first.');
+            alert(
+                'Cannot delete tasks from a locked column. Please unlock the column first.'
+            );
             return;
         }
 
@@ -281,7 +283,9 @@ function Column({
     const handleTaskAdd = async evt => {
         // Prevent adding tasks to locked column
         if (column.isLocked) {
-            alert('Cannot move tasks to a locked column. Please unlock it first.');
+            alert(
+                'Cannot move tasks to a locked column. Please unlock it first.'
+            );
             return false;
         }
 
@@ -292,9 +296,13 @@ function Column({
         const sourceColumnId = item.getAttribute('data-source-column');
 
         // Check if source column is locked (prevent moving FROM locked columns)
-        const sourceColumn = allColumns?.find(col => col._id === sourceColumnId);
+        const sourceColumn = allColumns?.find(
+            col => col._id === sourceColumnId
+        );
         if (sourceColumn?.isLocked) {
-            alert('Cannot move tasks from a locked column. Please unlock it first.');
+            alert(
+                'Cannot move tasks from a locked column. Please unlock it first.'
+            );
             return false;
         }
 
@@ -394,17 +402,31 @@ function Column({
                         ) : (
                             <h3
                                 className={`flex-1 text-lg font-semibold text-gray-900 ${
-                                    !column.isLocked ? 'cursor-pointer hover:text-blue-600' : 'cursor-default'
+                                    !column.isLocked
+                                        ? 'cursor-pointer hover:text-blue-600'
+                                        : 'cursor-default'
                                 }`}
                                 onClick={() =>
                                     !column.isLocked && setIsEditingName(true)
                                 }
-                                title={column.isLocked ? 'Column is locked - unlock to edit' : 'Click to edit name'}
+                                title={
+                                    column.isLocked
+                                        ? 'Column is locked - unlock to edit'
+                                        : 'Click to edit name'
+                                }
                             >
                                 {column.name}
                                 {column.isLocked && (
-                                    <svg className="inline w-4 h-4 ml-2 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                    <svg
+                                        className="inline w-4 h-4 ml-2 text-amber-500"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                            clipRule="evenodd"
+                                        />
                                     </svg>
                                 )}
                             </h3>
@@ -443,15 +465,35 @@ function Column({
                                         >
                                             {column.isLocked ? (
                                                 <>
-                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                                        />
                                                     </svg>
                                                     Unlock Column
                                                 </>
                                             ) : (
                                                 <>
-                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                                        />
                                                     </svg>
                                                     Lock Column
                                                 </>
@@ -467,8 +509,18 @@ function Column({
                                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     disabled={loading}
                                                 >
-                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                                        />
                                                     </svg>
                                                     Rename Column
                                                 </button>
@@ -477,8 +529,18 @@ function Column({
                                                     className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                                     disabled={loading}
                                                 >
-                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                        />
                                                     </svg>
                                                     Delete Column
                                                 </button>
@@ -559,7 +621,9 @@ function Column({
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
                                     <p className="text-sm">No tasks yet</p>
-                                    <p className="text-xs mt-1 text-amber-600">Column is locked</p>
+                                    <p className="text-xs mt-1 text-amber-600">
+                                        Column is locked
+                                    </p>
                                 </div>
                             )}
                         </div>

@@ -600,7 +600,7 @@ const options = {
                                 format: 'objectId'
                             },
                             description: 'Array of user IDs to assign'
-                        },
+                        }
                     }
                 },
                 TaskUpdateInput: {
@@ -660,7 +660,7 @@ const options = {
                             type: 'string',
                             format: 'objectId',
                             description: 'ID of column to move to'
-                        },
+                        }
                     }
                 },
                 AssignTaskInput: {

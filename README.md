@@ -5,12 +5,15 @@ A comprehensive task management application built with the MERN stack (MongoDB, 
 ## Authors
 
 **Nasandratra Sartin Harivonjy Niaina**
+
 > "In difficult times carry something beautiful in your heart." - Blaise Pascal
 
 **Fernando Arias**
+
 > Hi, this is Fernando.
 
 **Andrew Parry**
+
 > "Believe in yourself, and you're already halfway there." - Theodore Roosevelt
 
 ## Features
@@ -25,6 +28,7 @@ A comprehensive task management application built with the MERN stack (MongoDB, 
 ## Tech Stack
 
 ### Frontend
+
 - **React** 19.1.0 with Vite 7.0+ - Modern React development
 - **React Router DOM** 7.7.0 - Client-side routing
 - **Tailwind CSS** 4.1+ - Utility-first CSS framework
@@ -34,6 +38,7 @@ A comprehensive task management application built with the MERN stack (MongoDB, 
 - **Heroicons** - Beautiful hand-crafted SVG icons
 
 ### Backend
+
 - **Node.js** with Express.js - RESTful API server
 - **MongoDB** with Mongoose - Database and ODM
 - **Socket.io** - Real-time bidirectional communication
@@ -43,6 +48,7 @@ A comprehensive task management application built with the MERN stack (MongoDB, 
 - **Nodemailer** - Email services for notifications
 
 ### Development Tools
+
 - **ESLint** 9.31+ - Code linting for both frontend and backend
 - **Prettier** 3.6+ - Code formatting
 - **Concurrently** - Run multiple development servers
@@ -91,6 +97,7 @@ DevBoard/
 ## API Documentation
 
 The API is fully documented with Swagger. Once the server is running, visit:
+
 - **Swagger UI**: `http://localhost:5000/api-docs`
 - **Swagger JSON**: `http://localhost:5000/api-docs.json`
 
@@ -107,6 +114,7 @@ The API is fully documented with Swagger. Once the server is running, visit:
 Create `.env` files in both client and server directories:
 
 **Server `.env`:**
+
 ```env
 MONGODB_URI=mongodb://localhost:27017/devboard
 JWT_SECRET=your_jwt_secret_here
@@ -124,6 +132,7 @@ PORT=5000
 ```
 
 **Client `.env`:**
+
 ```env
 VITE_API_URL=http://localhost:5000/api
 VITE_SOCKET_URL=http://localhost:5000
@@ -132,29 +141,32 @@ VITE_SOCKET_URL=http://localhost:5000
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd DevBoard
-   ```
+
+    ```bash
+    git clone <repository-url>
+    cd DevBoard
+    ```
 
 2. **Install all dependencies**
-   ```bash
-   npm run install-all
-   ```
+
+    ```bash
+    npm run install-all
+    ```
 
 3. **Set up environment variables** (see above)
 
 4. **Start the development servers**
-   ```bash
-   npm run dev
-   ```
+    ```bash
+    npm run dev
+    ```
 
 ### Available Scripts
 
 **Root level commands:**
+
 - `npm run dev` - Start both client and server in development mode
 - `npm run client` - Start only the React frontend
-- `npm run server` - Start only the Express backend  
+- `npm run server` - Start only the Express backend
 - `npm run install-all` - Install dependencies for both client and server
 - `npm run install-server` - Install server dependencies only
 - `npm run install-client` - Install client dependencies only
@@ -166,6 +178,7 @@ VITE_SOCKET_URL=http://localhost:5000
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/google` - Google OAuth
@@ -173,24 +186,28 @@ VITE_SOCKET_URL=http://localhost:5000
 - `GET /api/auth/linkedin` - LinkedIn OAuth
 
 ### Boards
+
 - `GET /api/boards` - Get user's boards
 - `POST /api/boards` - Create new board
 - `PUT /api/boards/:id` - Update board
 - `DELETE /api/boards/:id` - Delete board
 
 ### Tasks
+
 - `GET /api/tasks` - Get tasks
 - `POST /api/tasks` - Create task
 - `PUT /api/tasks/:id` - Update task
 - `DELETE /api/tasks/:id` - Delete task
 
 ### Users & Profiles
+
 - `GET /api/users/profile` - Get user profile
 - `PUT /api/users/profile` - Update profile
 
 ## Development Status
 
 ✅ **Completed Features:**
+
 - User authentication with OAuth integration
 - Board and task management
 - Real-time collaboration
@@ -198,11 +215,10 @@ VITE_SOCKET_URL=http://localhost:5000
 - API documentation
 - Responsive UI design
 
-
 ## License
 
 MIT
 
 ---
 
-*Last updated: August 2025 - Full-featured MERN stack task management application*
+_Last updated: August 2025 - Full-featured MERN stack task management application_

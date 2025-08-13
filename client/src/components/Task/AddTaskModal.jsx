@@ -11,7 +11,7 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    
+
     // Add ref for the title input
     const titleInputRef = useRef(null);
 
@@ -238,7 +238,8 @@ function AddTaskModal({ isOpen, onClose, columnId, onTaskCreated }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                You can assign team members after creating the task.
+                                You can assign team members after creating the
+                                task.
                             </p>
                         </div>
 

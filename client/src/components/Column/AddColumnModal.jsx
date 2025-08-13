@@ -8,7 +8,7 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    
+
     // Add ref for the name input
     const nameInputRef = useRef(null);
 
@@ -177,7 +177,8 @@ function AddColumnModal({ isOpen, onClose, boardId, onColumnCreated }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                Locked columns cannot be renamed or deleted untill unlocked.
+                                Locked columns cannot be renamed or deleted
+                                untill unlocked.
                             </p>
                         </div>
                         {error && (
