@@ -1,0 +1,105 @@
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+	const token = localStorage.getItem('authToken');
+	if (!token) {
+		throw new Error('Authentication token not found');
+	}
+	return {
+		headers: {
+			Authorization: `Bearer ${token}`
+		}
+	};
+};
+
+export const teamService = {
+	async inviteMember(boardId, memberData) {
+		try {
+			const response = await axios.post(
+				`${API_BASE_URL}/invitations/${boardId}/invite`,
+				memberData,
+				getAuthHeaders()
+			);
+			return response.data;
+		} catch (error) {
+			console.error('Error inviting member:', error);
+			throw error;
+		}
+	},
+
+	// Remove a member from the team
+	async removeMember(boardId, updatedData) {
+		try {
+			const response = await axios.put(
+				`${API_BASE_URL}/boards/${boardId}`,
+				updatedData,
+				getAuthHeaders()
+			);
+			return response.data;
+		} catch (error) {
+			console.error('Error removing member:', error);
+			throw error;
+		}
+	},
+
+	// Assign owner to the team
+	async changeRole(boardId, updatedData) {
+		try {
+			const response = await axios.put(
+				`${API_BASE_URL}/boards/${boardId}`,
+				updatedData,
+				getAuthHeaders()
+			);
+			return response.data;
+		} catch (error) {
+			console.error('Error changing role:', error);
+			throw error;
+		}
+	},
+
+	// transfer ownership of the team
+	async transferOwnership(boardId, updatedData) {
+		try {
+			const response = await axios.put(
+				`${API_BASE_URL}/boards/${boardId}/`,
+				updatedData,
+				getAuthHeaders()
+			);
+			return response.data;
+		} catch (error) {
+			console.error('Error transferring ownership:', error);
+			throw error;
+		}
+	},
+
+	// Verify invitation token
+	async verifyInvitation(token) {
+		try {
+			const response = await axios.get(
+				`${API_BASE_URL}/invitations/${token}/verify`
+			);
+			return response.data;
+		} catch (error) {
+			console.error('Error verifying invitation:', error);
+			throw error;
+		}
+	},
+
+	// Accept an invitation
+	async acceptInvitation(token) {
+		try {
+			const response = await axios.post(
+				`${API_BASE_URL}/invitations/${token}/accept`,
+				{},
+				getAuthHeaders()
+			);
+			return response.data;
+		} catch (error) {
+			console.error('Error accepting invitation:', error);
+			throw error;
+		}
+	}
+};

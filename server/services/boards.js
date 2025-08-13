@@ -101,13 +101,6 @@ const updateBoardService = async (boardId, updateData, userId) => {
             'tags',
             'lockedColumns'
         ];
-        const isValidOperation = updates.every(update =>
-            allowedUpdates.includes(update)
-        );
-
-        if (!isValidOperation) {
-            throw createError(400, 'Invalid updates!');
-        }
 
         if (updateData.members) {
             await verifyMembersExist(updateData.members);
