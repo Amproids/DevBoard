@@ -23,6 +23,11 @@ function Column({
 
     // Handle when ReactSortable wants to move/reorder elements (preview)
     const handleMove = () => {
+        // Block all moves if column is locked
+        if (column.isLocked) {
+            return false;
+        }
+
         // If already animating a preview, block new ones
         if (isAnimating) {
             return false; // Returning false prevents the move
@@ -60,6 +65,13 @@ function Column({
     };
 
     const handleNameEdit = async () => {
+        // Prevent editing if column is locked
+        if (column.isLocked) {
+            setColumnName(column.name);
+            setIsEditingName(false);
+            return;
+        }
+
         if (!columnName.trim() || columnName === column.name) {
             setColumnName(column.name);
             setIsEditingName(false);
@@ -110,6 +122,13 @@ function Column({
     };
 
     const handleDeleteColumn = async () => {
+        // Prevent deletion if column is locked
+        if (column.isLocked) {
+            alert('Cannot delete a locked column. Please unlock it first.');
+            setShowMenu(false);
+            return;
+        }
+
         if (!window.confirm('Are you sure you want to delete this column?'))
             return;
         try {
@@ -128,10 +147,19 @@ function Column({
     };
 
     const handleAddTask = () => {
+        // Prevent adding tasks if column is locked
+        if (column.isLocked) {
+            return;
+        }
         setShowAddTaskModal(true);
     };
 
     const handleTaskCreated = newTask => {
+        // Prevent task creation if column is locked
+        if (column.isLocked) {
+            return;
+        }
+
         if (onColumnUpdated) {
             const updatedColumn = {
                 ...column,
@@ -142,6 +170,8 @@ function Column({
     };
 
     const handleTaskUpdated = updatedTask => {
+        // Allow task updates even in locked columns (for completion status, etc.)
+        // This is a design decision - you might want to restrict this too
         if (onColumnUpdated) {
             const updatedColumn = {
                 ...column,
@@ -154,6 +184,14 @@ function Column({
     };
 
     const handleTaskDeleted = deletedTaskId => {
+        // Prevent task deletion if column is locked
+        if (column.isLocked) {
+            alert(
+                'Cannot delete tasks from a locked column. Please unlock the column first.'
+            );
+            return;
+        }
+
         if (onColumnUpdated) {
             const updatedColumn = {
                 ...column,
@@ -165,6 +203,11 @@ function Column({
 
     // Handle task reordering within the same column
     const handleTaskSort = async (newTasks, sortableEvent) => {
+        // Prevent sorting if column is locked
+        if (column.isLocked) {
+            return;
+        }
+
         // Guard against null sortableEvent (can happen on initial render)
         if (!sortableEvent) {
             return;
@@ -177,6 +220,9 @@ function Column({
             return;
         }
 
+        // Filter out any invalid tasks
+        const validTasks = newTasks.filter(task => task && task._id);
+
         // Update local state immediately for smooth UI
         setTasks(validTasks);
 
@@ -187,6 +233,11 @@ function Column({
 
     // Handle when task reordering finishes (API call)
     const handleTaskEnd = async evt => {
+        // Prevent task reordering if column is locked
+        if (column.isLocked) {
+            return;
+        }
+
         const { oldIndex, newIndex, from, to } = evt;
 
         // Only handle same-column moves here (cross-column moves are handled by onAdd)
@@ -230,11 +281,30 @@ function Column({
 
     // Handle cross-column task moves
     const handleTaskAdd = async evt => {
+        // Prevent adding tasks to locked column
+        if (column.isLocked) {
+            alert(
+                'Cannot move tasks to a locked column. Please unlock it first.'
+            );
+            return false;
+        }
+
         const { item, newIndex } = evt;
 
         // Get the task data from the item's data attribute
         const taskData = JSON.parse(item.getAttribute('data-task'));
         const sourceColumnId = item.getAttribute('data-source-column');
+
+        // Check if source column is locked (prevent moving FROM locked columns)
+        const sourceColumn = allColumns?.find(
+            col => col._id === sourceColumnId
+        );
+        if (sourceColumn?.isLocked) {
+            alert(
+                'Cannot move tasks from a locked column. Please unlock it first.'
+            );
+            return false;
+        }
 
         // Check if target column has placeholder
         const targetHasPlaceholder = tasks.length === 0;
@@ -282,6 +352,11 @@ function Column({
 
     // Handle when task is removed from this column (going to another column)
     const handleTaskRemove = evt => {
+        // Prevent removing tasks from locked column
+        if (column.isLocked) {
+            return false;
+        }
+
         const { oldIndex } = evt;
 
         // Adjust index for placeholder if needed
@@ -306,13 +381,13 @@ function Column({
         <div className="flex-shrink-0 w-80">
             <div
                 className={`bg-white rounded-lg shadow-sm border transition-all duration-200 ${
-                    column.isLocked ? 'opacity-75' : ''
+                    column.isLocked ? 'border-amber-300' : ''
                 }`}
             >
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200 select-none">
                     <div className="flex items-center justify-between mb-2">
-                        {isEditingName ? (
+                        {isEditingName && !column.isLocked ? (
                             <input
                                 type="text"
                                 value={columnName}
@@ -326,12 +401,34 @@ function Column({
                             />
                         ) : (
                             <h3
-                                className="flex-1 text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
+                                className={`flex-1 text-lg font-semibold text-gray-900 ${
+                                    !column.isLocked
+                                        ? 'cursor-pointer hover:text-blue-600'
+                                        : 'cursor-default'
+                                }`}
                                 onClick={() =>
                                     !column.isLocked && setIsEditingName(true)
                                 }
+                                title={
+                                    column.isLocked
+                                        ? 'Column is locked - unlock to edit'
+                                        : 'Click to edit name'
+                                }
                             >
                                 {column.name}
+                                {column.isLocked && (
+                                    <svg
+                                        className="inline w-4 h-4 ml-2 text-amber-500"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                )}
                             </h3>
                         )}
 
@@ -366,27 +463,89 @@ function Column({
                                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             disabled={loading}
                                         >
-                                            {column.isLocked
-                                                ? 'Unlock Column'
-                                                : 'Lock Column'}
+                                            {column.isLocked ? (
+                                                <>
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                    Unlock Column
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                                        />
+                                                    </svg>
+                                                    Lock Column
+                                                </>
+                                            )}
                                         </button>
-                                        <button
-                                            onClick={() => {
-                                                setIsEditingName(true);
-                                                setShowMenu(false);
-                                            }}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            disabled={loading}
-                                        >
-                                            Rename Column
-                                        </button>
-                                        <button
-                                            onClick={handleDeleteColumn}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                            disabled={loading}
-                                        >
-                                            Delete Column
-                                        </button>
+                                        {!column.isLocked && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsEditingName(true);
+                                                        setShowMenu(false);
+                                                    }}
+                                                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                    disabled={loading}
+                                                >
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                                        />
+                                                    </svg>
+                                                    Rename Column
+                                                </button>
+                                                <button
+                                                    onClick={handleDeleteColumn}
+                                                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                    disabled={loading}
+                                                >
+                                                    <svg
+                                                        className="w-4 h-4 mr-2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                        />
+                                                    </svg>
+                                                    Delete Column
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -395,8 +554,8 @@ function Column({
                     <div className="flex items-center justify-between text-sm text-gray-500">
                         <span>{getTaskCount()} tasks</span>
                         {column.isLocked && (
-                            <span className="text-xs text-amber-600">
-                                Locked
+                            <span className="text-xs text-amber-600 font-medium">
+                                🔒 Locked
                             </span>
                         )}
                     </div>
@@ -462,19 +621,26 @@ function Column({
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
                                     <p className="text-sm">No tasks yet</p>
+                                    <p className="text-xs mt-1 text-amber-600">
+                                        Column is locked
+                                    </p>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {!column.isLocked && (
+                    {!column.isLocked ? (
                         <button
                             onClick={handleAddTask}
-                            className="w-full mt-3 p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700"
+                            className="w-full mt-3 p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
                             disabled={loading}
                         >
-                            Add Task
+                            + Add Task
                         </button>
+                    ) : (
+                        <div className="w-full mt-3 p-3 border-2 border-dashed border-amber-200 rounded-lg text-amber-500 text-center cursor-not-allowed">
+                            Column Locked
+                        </div>
                     )}
                 </div>
             </div>

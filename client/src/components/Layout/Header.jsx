@@ -31,12 +31,6 @@ function Header({ isAuthenticated = false }) {
                             Home
                         </Link>
                         <Link
-                            to="/about"
-                            className="text-gray-700 hover:text-[var(--color-secondary)] transition-colors duration-200 font-medium"
-                        >
-                            About
-                        </Link>
-                        <Link
                             to="/dashboard"
                             className="flex items-center space-x-2 text-gray-700 hover:text-[var(--color-secondary)] transition-colors duration-200 font-medium"
                         >
@@ -115,13 +109,6 @@ function Header({ isAuthenticated = false }) {
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Home
-                            </Link>
-                            <Link
-                                to="/about"
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                About
                             </Link>
                             <Link
                                 to="/dashboard"

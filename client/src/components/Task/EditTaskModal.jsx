@@ -19,7 +19,9 @@ function EditTaskModal({ isOpen, onClose, task, onTaskUpdated }) {
                 title: task.title || '',
                 description: task.description || '',
                 priority: task.priority || 'medium',
-                dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+                dueDate: task.dueDate
+                    ? new Date(task.dueDate).toISOString().split('T')[0]
+                    : '',
                 completed: task.completed || false
             });
         }
@@ -238,7 +240,8 @@ function EditTaskModal({ isOpen, onClose, task, onTaskUpdated }) {
                                         clipRule="evenodd"
                                     />
                                 </svg>
-                                Assignee management is available in the full task view.
+                                Assignee management is available in the full
+                                task view.
                             </p>
                         </div>
 
