@@ -21,6 +21,12 @@ function Column({
     // Animation state to prevent interactions during animations
     const [isAnimating, setIsAnimating] = useState(false);
 
+    // Track which task is being dragged
+    const [draggedTask, setDraggedTask] = useState(null);
+
+    // Flag to prevent useEffect from overriding intentional updates
+    const [isInternalUpdate, setIsInternalUpdate] = useState(false);
+
     // Handle when ReactSortable wants to move/reorder elements (preview)
     const handleMove = () => {
         // Block all moves if column is locked
@@ -49,8 +55,12 @@ function Column({
 
     // Update local tasks when column tasks change
     useEffect(() => {
+        // Don't override if we're in the middle of an internal update
+        if (isInternalUpdate) {
+            return;
+        }
         setTasks(column.tasks || []);
-    }, [column.tasks]);
+    }, [column.tasks, isInternalUpdate]);
 
     // Helper function to adjust index based on placeholder presence
     const adjustIndexForPlaceholder = (index, hasPlaceholder) => {
@@ -62,6 +72,13 @@ function Column({
 
         // For any other index, subtract 1 to account for placeholder
         return Math.max(0, index - 1);
+    };
+
+    // Handle drag start to track which task is being moved
+    const handleDragStart = evt => {
+        // Store which task is being dragged BEFORE any array modifications
+        const draggedTaskData = tasks[evt.oldIndex];
+        setDraggedTask(draggedTaskData);
     };
 
     const handleNameEdit = async () => {
@@ -223,6 +240,9 @@ function Column({
         // Filter out any invalid tasks
         const validTasks = newTasks.filter(task => task && task._id);
 
+        // Set flag to prevent useEffect interference
+        setIsInternalUpdate(true);
+
         // Update local state immediately for smooth UI
         setTasks(validTasks);
 
@@ -255,12 +275,15 @@ function Column({
 
             // If no change in position after adjustment, return early
             if (adjustedOldIndex === adjustedNewIndex) {
+                setDraggedTask(null); // Clear the dragged task reference
+                setIsInternalUpdate(false); // Clear the internal update flag
                 return;
             }
 
             try {
-                const taskToMove = tasks[adjustedNewIndex] || tasks[0]; // Fallback to first task
-                if (!taskToMove) {
+                // Use the stored dragged task instead of trying to find it from the modified array
+                if (!draggedTask) {
+                    console.error('No dragged task found!');
                     return;
                 }
 
@@ -269,12 +292,36 @@ function Column({
                     newOrder: adjustedNewIndex
                 };
 
-                await taskService.moveTask(taskToMove._id, moveData);
+                // Update UI state to match server response
+                const updatedTasks = [...tasks];
+
+                // Remove task from old position
+                const taskIndex = updatedTasks.findIndex(
+                    t => t._id === draggedTask._id
+                );
+                if (taskIndex !== -1) {
+                    updatedTasks.splice(taskIndex, 1);
+                }
+
+                // Insert task at new position
+                updatedTasks.splice(adjustedNewIndex, 0, draggedTask);
+
+                // Update local state
+                setTasks(updatedTasks);
+
+                // Update parent component
+                const updatedColumn = { ...column, tasks: updatedTasks };
+                onColumnUpdated(updatedColumn);
             } catch (error) {
                 console.error('Error moving task:', error);
                 // Revert on error
                 setTasks(column.tasks || []);
+                setIsInternalUpdate(false); // Clear flag on error too
                 alert('Failed to move task. Please try again.');
+            } finally {
+                // Clear the dragged task reference and internal update flag
+                setDraggedTask(null);
+                setIsInternalUpdate(false);
             }
         }
     };
@@ -577,6 +624,7 @@ function Column({
                             dragoverBubble={false}
                             onAdd={handleTaskAdd}
                             onRemove={handleTaskRemove}
+                            onStart={handleDragStart}
                             onEnd={handleTaskEnd}
                             onMove={handleMove}
                             className="space-y-3 min-h-[200px]"
