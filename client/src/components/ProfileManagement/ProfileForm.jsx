@@ -12,7 +12,7 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
             firstName: profile?.firstName || '',
             lastName: profile?.lastName || '',
             displayName: profile?.displayName || '',
-            avatar: profile?.avatar || null
+            avatar: profile?.avatar || 'null'
         },
         [
             profile?.firstName,
@@ -146,11 +146,10 @@ function ProfileForm({ profile = {}, setProfile, onProfileUpdate }) {
                 </div>
 
                 <button
-                    className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-secondary)] cursor-pointer ${
-                        hasChanges && !loading
-                            ? 'bg-[var(--color-secondary)] text-white hover:bg-[var(--color-highlight)]'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-secondary)] cursor-pointer ${hasChanges && !loading
+                        ? 'bg-[var(--color-secondary)] text-white hover:bg-[var(--color-highlight)]'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     type="submit"
                     disabled={!hasChanges || loading}
                 >

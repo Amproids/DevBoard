@@ -10,9 +10,9 @@ module.exports = {
                 'string.empty': 'Last name cannot be empty'
             }),
             displayName: Joi.string().optional(),
-            avatar: Joi.string().optional().uri().messages({
-                'string.uri': 'Avatar must be a valid URL'
-            }),
+            // avatar: Joi.string().optional().uri().messages({
+            //     'string.uri': 'Avatar must be a valid URL'
+            // }),
             // Add support for OAuth fields for unlinking
             googleId: Joi.string().allow(null).optional(),
             githubId: Joi.string().allow(null).optional(),

@@ -43,7 +43,7 @@ const EditBoardModal = ({ isOpen, onClose, board, onBoardUpdated }) => {
                 tags: formData.tags || []
             };
 
-            if (formData.description.trim()) {
+            if (formData.description && formData.description.trim()) {
                 updatedBoardData.description = formData.description.trim();
             }
 
